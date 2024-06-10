@@ -13,10 +13,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// WeatherflowTempestSVGLogger.cpp : Defines the entry point for the application.
-
-using namespace std;
-
 /////////////////////////////////////////////////////////////////////////////
 #if __has_include("weatherflowtempestsvglogger-version.h")
 #include "weatherflowtempestsvglogger-version.h"
@@ -281,6 +277,15 @@ int main(int argc, char** argv)
 		std::cout << "[" << getTimeISO8601() << "] " << ProgramVersionString << std::endl;
 		if (ConsoleVerbosity > 1)
 		{
+			std::cout << "[                   ]      C++: ";
+				if (__cplusplus == 202101L) std::cout << "C++23";
+				else if (__cplusplus == 202002L) std::cout << "C++20";
+				else if (__cplusplus == 201703L) std::cout << "C++17";
+				else if (__cplusplus == 201402L) std::cout << "C++14";
+				else if (__cplusplus == 201103L) std::cout << "C++11";
+				else if (__cplusplus == 199711L) std::cout << "C++98";
+				else std::cout << "pre-standard C++." << __cplusplus;
+				std::cout << std::endl;
 			std::cout << "[                   ]      log: " << LogDirectory << std::endl;
 			std::cout << "[                   ]    cache: " << CacheDirectory << std::endl;
 			std::cout << "[                   ]      svg: " << SVGDirectory << std::endl;
@@ -358,6 +363,9 @@ int main(int argc, char** argv)
 	std::signal(SIGHUP, previousHandlerSIGHUP);	// Restore original Hangup signal handler
 	std::signal(SIGINT, previousHandlerSIGINT);	// Restore original Ctrl-C signal handler
 	///////////////////////////////////////////////////////////////////////////////////////////////
-	std::cerr << ProgramVersionString << " (exiting)" << std::endl;
+	if (ConsoleVerbosity > 0)
+		std::cout << "[" << getTimeISO8601() << "] " << ProgramVersionString << " (exiting)" << std::endl;
+	else
+		std::cerr << ProgramVersionString << " (exiting)" << std::endl;
 	return(ExitValue);
 }
