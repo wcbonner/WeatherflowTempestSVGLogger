@@ -2,8 +2,12 @@
 
 cmake_minimum_required (VERSION 3.12.0)
 
+if (POLICY CMP0115)
+  cmake_policy(SET CMP0115 NEW)
+endif()
+
 project ("WeatherflowTempestSVGLogger"
-    VERSION 1.20240609.0
+    VERSION 1.20240610.0
     DESCRIPTION "Listen and log Weatherflow Tempest Weather Station UDP Packets"
     HOMEPAGE_URL https://github.com/wcbonner/WeatherflowTempestSVGLogger
 	)
@@ -11,13 +15,14 @@ project ("WeatherflowTempestSVGLogger"
 configure_file(weatherflowtempestsvglogger-version.h.in weatherflowtempestsvglogger-version.h)
 
 # Add source to this project's executable.
-add_executable (WeatherflowTempestSVGLogger 
+add_executable (WeatherflowTempestSVGLogger
 	"weatherflowtempestsvglogger.cpp"
+	"weatherflowtempestsvglogger-version.h"
 	"wimiso8601.cpp"
 	"wimiso8601.h"
 	)
 
-target_link_libraries(WeatherflowTempestSVGLogger 
+target_link_libraries(WeatherflowTempestSVGLogger
 	-lstdc++fs
 	)
 

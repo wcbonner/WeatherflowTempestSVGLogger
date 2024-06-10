@@ -18,8 +18,8 @@
 using namespace std;
 
 /////////////////////////////////////////////////////////////////////////////
-#if __has_include("weatherflowtempestlogger-version.h")
-#include "weatherflowtempestlogger-version.h"
+#if __has_include("weatherflowtempestsvglogger-version.h")
+#include "weatherflowtempestsvglogger-version.h"
 #endif
 #ifndef WeatherFlowTempestLogger_VERSION
 #define WeatherFlowTempestLogger_VERSION "(non-CMake)"
