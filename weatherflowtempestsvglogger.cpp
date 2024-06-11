@@ -27,7 +27,7 @@ int ConsoleVerbosity(1);
 std::filesystem::path LogDirectory;	// If this remains empty, log Files are not created.
 std::filesystem::path CacheDirectory;	// If this remains empty, cache Files are not used. Cache Files should greatly speed up startup of the program if logged data runs multiple years over many devices.
 std::filesystem::path SVGDirectory;	// If this remains empty, SVG Files are not created. If it's specified, _day, _week, _month, and _year.svg files are created for each bluetooth address seen.
-int LogFileTime(60);	// Time between log file writes, to reduce frequency of writing to SD Card
+int LogFileTime(300);	// Time between log file writes, to reduce frequency of writing to SD Card
 int SVGBattery(0); // 0x01 = Draw Battery line on daily, 0x02 = Draw Battery line on weekly, 0x04 = Draw Battery line on monthly, 0x08 = Draw Battery line on yearly
 int SVGMinMax(0); // 0x01 = Draw Temperature and Humiditiy Minimum and Maximum line on daily, 0x02 = on weekly, 0x04 = on monthly, 0x08 = on yearly
 bool SVGFahrenheit(true);

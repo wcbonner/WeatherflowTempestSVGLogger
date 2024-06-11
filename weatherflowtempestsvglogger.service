@@ -1,0 +1,25 @@
+# Contents of /etc/systemd/system/weatherflowtempestsvglogger.service
+[Unit]
+Description=GoveeBTTempLogger service
+After=network-online.target
+Requires=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=33
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=30
+ExecStartPre=/bin/mkdir --parents /var/log/weatherflowtempestsvglogger
+ExecStartPre=/bin/mkdir --parents /var/www/html/weatherflowtempestsvglogger
+ExecStartPre=/bin/mkdir --parents /var/cache/weatherflowtempestsvglogger
+ExecStart=/usr/local/bin/weatherflowtempestsvglogger \
+    --verbose 0 \
+    --log /var/log/weatherflowtempestsvglogger \
+    --time 60 \
+    --svg /var/www/html/weatherflowtempestsvglogger --minmax 8 \
+    --cache /var/cache/weatherflowtempestsvglogger
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

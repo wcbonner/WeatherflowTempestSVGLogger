@@ -86,6 +86,10 @@
     <Text Include="LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="weatherflowtempestsvglogger.service" />
+    <None Include="postinst" />
+    <None Include="postrm" />
+    <None Include="prerm" />
     <None Include="README.md" />
     <None Include="weatherflowtempestsvglogger-version.h.in" />
   </ItemGroup>
