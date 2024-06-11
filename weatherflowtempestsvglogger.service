@@ -1,6 +1,6 @@
 # Contents of /etc/systemd/system/weatherflowtempestsvglogger.service
 [Unit]
-Description=GoveeBTTempLogger service
+Description=WeatherflowTempestSVGLogger service
 After=network-online.target
 Requires=network.target
 StartLimitBurst=5
