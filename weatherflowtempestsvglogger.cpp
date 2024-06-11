@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <jsoncpp/json/json.h>
 
 /////////////////////////////////////////////////////////////////////////////
 #if __has_include("weatherflowtempestsvglogger-version.h")
@@ -118,8 +119,10 @@ bool GenerateLogFile(std::queue<std::string> & Data)
 	if (!LogDirectory.empty())
 	{
 		std::filesystem::path filename(GenerateLogFileName());
-		if (ConsoleVerbosity > 1)
+		if (ConsoleVerbosity > 0)
 			std::cout << "[" << getTimeISO8601() << "] GenerateLogFile: " << filename << std::endl;
+		else
+			std::cerr << "GenerateLogFile: " << filename << std::endl;
 		std::ofstream LogFile(filename, std::ios_base::out | std::ios_base::app | std::ios_base::ate);
 		if (LogFile.is_open())
 		{
@@ -345,6 +348,61 @@ int main(int argc, char** argv)
 				DataToBeLogged.push(JSonData);
 				if (ConsoleVerbosity > 0)
 					std::cout << "[" << getTimeISO8601() << "] " << JSonData << std::endl;
+
+				// https://github.com/open-source-parsers/jsoncpp
+				const auto rawJsonLength = static_cast<int>(JSonData.length());
+				JSONCPP_STRING err;
+				Json::Value root;
+				Json::CharReaderBuilder builder;
+				const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+				if (!reader->parse(JSonData.c_str(), JSonData.c_str() + rawJsonLength, &root, &err))
+				{
+					std::cout << "json reader error" << std::endl;
+					//return EXIT_FAILURE;
+				}
+				else
+				{
+					// https://apidocs.tempestwx.com/reference/tempest-udp-broadcast
+					const std::string msgtype = root["type"].asString();
+					if (!msgtype.compare("rapid_wind"))
+					{
+						const Json::Value observation = root["ob"];
+						if (observation.size() == 3)
+						{
+							auto timetick = observation[0].asLargestInt();
+							auto windspeed = observation[1].asFloat();
+							auto winddirection = observation[2].asInt();
+							std::cout << "[" << getTimeISO8601() << "] Rapid Wind: " << timetick << ", " << windspeed << ", " << winddirection << std::endl;
+						}
+					}
+					else if (!msgtype.compare("obs_st"))
+					{
+						const Json::Value observation = root["obs"];
+						if (observation.size() == 1)
+							if (observation[0].size() == 18)
+							{
+								auto timetick = observation[0][0].asLargestInt();
+								auto wind_lull = observation[0][1].asFloat();
+								auto wind_average = observation[0][2].asFloat();
+								auto wind_gust = observation[0][3].asFloat();
+								auto wind_direction = observation[0][4].asInt();
+								auto wind_sample_interval = observation[0][5].asInt();
+								//6	station pressure	mb
+								//7	air temperature	c
+								//8	relative humidity %
+								//9	illuminance	lux
+								//10	UV	index
+								//11	solar radiation	W / m²
+								//12	rain accumulation over the previous minute	mm
+								//13	precipitation type	0 = none, 1 = rain, 2 = hail, 3 = rain + hail(experimental)
+								//14	lightning strike average distance	km
+								//15	lightning strike count
+								//16	battery	volts
+								//17	reporting interval	minutes
+								std::cout << "[" << getTimeISO8601() << "] Station Observation: " << timetick << std::endl;
+							}
+					}
+				}
 			}
 		}
 		time_t TimeNow;

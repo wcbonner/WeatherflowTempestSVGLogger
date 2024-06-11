@@ -40,6 +40,7 @@ target_include_directories(
 target_link_libraries(
 	WeatherflowTempestSVGLogger
 	-lstdc++fs
+	-ljsoncpp
 	)
 
 include(CTest)
