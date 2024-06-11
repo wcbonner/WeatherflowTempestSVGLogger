@@ -357,7 +357,8 @@ int main(int argc, char** argv)
 				const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
 				if (!reader->parse(JSonData.c_str(), JSonData.c_str() + rawJsonLength, &root, &err))
 				{
-					std::cout << "json reader error" << std::endl;
+					if (ConsoleVerbosity > 0)
+						std::cout << "json reader error" << std::endl;
 					//return EXIT_FAILURE;
 				}
 				else
@@ -372,7 +373,8 @@ int main(int argc, char** argv)
 							auto timetick = observation[0].asLargestInt();
 							auto windspeed = observation[1].asFloat();
 							auto winddirection = observation[2].asInt();
-							std::cout << "[" << getTimeISO8601() << "] Rapid Wind: " << timetick << ", " << windspeed << ", " << winddirection << std::endl;
+							if (ConsoleVerbosity > 1)
+								std::cout << "[" << getTimeISO8601() << "] Rapid Wind: " << timetick << ", " << windspeed << ", " << winddirection << std::endl;
 						}
 					}
 					else if (!msgtype.compare("obs_st"))
@@ -399,7 +401,8 @@ int main(int argc, char** argv)
 								//15	lightning strike count
 								//16	battery	volts
 								//17	reporting interval	minutes
-								std::cout << "[" << getTimeISO8601() << "] Station Observation: " << timetick << std::endl;
+								if (ConsoleVerbosity > 1)
+									std::cout << "[" << getTimeISO8601() << "] Station Observation: " << timetick << std::endl;
 							}
 					}
 				}
