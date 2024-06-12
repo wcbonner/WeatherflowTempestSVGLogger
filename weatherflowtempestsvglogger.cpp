@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/json.h> // sudo apt install libjsoncpp-dev
 
 /////////////////////////////////////////////////////////////////////////////
 #if __has_include("weatherflowtempestsvglogger-version.h")
