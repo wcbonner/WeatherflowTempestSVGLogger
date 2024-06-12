@@ -116,7 +116,7 @@ std::filesystem::path GenerateLogFileName(time_t timer = 0)
 bool GenerateLogFile(std::queue<std::string> & Data)
 {
 	bool rval = false;
-	if (!LogDirectory.empty())
+	if (!LogDirectory.empty() && !Data.empty())
 	{
 		std::filesystem::path filename(GenerateLogFileName());
 		if (ConsoleVerbosity > 0)
@@ -126,17 +126,12 @@ bool GenerateLogFile(std::queue<std::string> & Data)
 		std::ofstream LogFile(filename, std::ios_base::out | std::ios_base::app | std::ios_base::ate);
 		if (LogFile.is_open())
 		{
-			//time_t MostRecentData(0);
 			while (!Data.empty())
 			{
 				LogFile << Data.front() << std::endl;
 				Data.pop();
 			}
 			LogFile.close();
-			//struct utimbuf Log_ut;
-			//Log_ut.actime = MostRecentData;
-			//Log_ut.modtime = MostRecentData;
-			//utime(filename.c_str(), &Log_ut);
 			rval = true;
 		}
 	}
@@ -370,6 +365,14 @@ int main(int argc, char** argv)
 						const Json::Value observation = root["ob"];
 						if (observation.size() == 3)
 						{
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217088,2.38,332]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217091,2.02,335]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217094,2.27,318]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217097,2.66,339]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217100,2.30,352]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217103,1.74,354]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217106,1.58,4]}
+							//{"serial_number":"ST-00145757","type":"rapid_wind","hub_sn":"HB-00147479","ob":[1718217109,2.35,351]}
 							auto timetick = observation[0].asLargestInt();
 							auto windspeed = observation[1].asFloat();
 							auto winddirection = observation[2].asInt();
@@ -383,24 +386,25 @@ int main(int argc, char** argv)
 						if (observation.size() == 1)
 							if (observation[0].size() == 18)
 							{
+								//	{"serial_number":"ST-00145757","type":"obs_st","hub_sn":"HB-00147479","obs":[[1718217086,1.58,2.25,3.22,340,3,1025.33,14.58,60.34,138057,10.17,1150,0.000000,0,0,0,2.805,1]],"firmware_revision":176}
 								auto timetick = observation[0][0].asLargestInt();
 								auto wind_lull = observation[0][1].asFloat();
 								auto wind_average = observation[0][2].asFloat();
 								auto wind_gust = observation[0][3].asFloat();
 								auto wind_direction = observation[0][4].asInt();
 								auto wind_sample_interval = observation[0][5].asInt();
-								//6	station pressure	mb
-								//7	air temperature	c
-								//8	relative humidity %
-								//9	illuminance	lux
-								//10	UV	index
-								//11	solar radiation	W / m²
-								//12	rain accumulation over the previous minute	mm
-								//13	precipitation type	0 = none, 1 = rain, 2 = hail, 3 = rain + hail(experimental)
-								//14	lightning strike average distance	km
-								//15	lightning strike count
-								//16	battery	volts
-								//17	reporting interval	minutes
+								auto station_pressure = observation[0][5].asFloat();
+								auto air_temperature = observation[0][5].asFloat();
+								auto relative_humidity = observation[0][5].asFloat();
+								auto illuminance = observation[0][5].asInt();
+								auto UV = observation[0][5].asFloat();
+								auto solar_radiation = observation[0][5].asInt();
+								auto rain_accumulation_over_the_previous_minute = observation[0][5].asFloat();								
+								auto precipitation_type = observation[0][5].asInt();
+								auto lightning_strike_average_distance = observation[0][5].asInt();
+								auto lightning_strike_count = observation[0][5].asInt();
+								auto battery = observation[0][5].asFloat();
+								auto reporting_interval = observation[0][5].asInt();
 								if (ConsoleVerbosity > 1)
 									std::cout << "[" << getTimeISO8601() << "] Station Observation: " << timetick << std::endl;
 							}

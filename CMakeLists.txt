@@ -8,7 +8,7 @@ endif()
 
 project (
 	WeatherflowTempestSVGLogger
-	VERSION 1.20240611.3
+	VERSION 1.20240612.0
 	DESCRIPTION "Listen and log Weatherflow Tempest Weather Station UDP Packets"
 	HOMEPAGE_URL https://github.com/wcbonner/WeatherflowTempestSVGLogger
 	)
@@ -36,7 +36,6 @@ target_include_directories(
     PUBLIC "${PROJECT_BINARY_DIR}" ${EXTRA_INCLUDES}
     )
 
-
 target_link_libraries(
 	WeatherflowTempestSVGLogger
 	-lstdc++fs
@@ -61,14 +60,12 @@ install(FILES weatherflowtempestsvglogger.service
     COMPONENT "weatherflowtempestsvglogger"
 )
 
-
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_CONTACT "wcbonner@users.noreply.github.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "William C Bonner <${CPACK_PACKAGE_CONTACT}>")
 include(InstallRequiredSystemLibraries)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_RELEASE ${CMAKE_PROJECT_VERSION_PATCH})
 set(CPACK_DEBIAN_PACKAGE_SECTION custom)
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/postinst" "${CMAKE_CURRENT_SOURCE_DIR}/prerm" "${CMAKE_CURRENT_SOURCE_DIR}/postrm")
 set(CPACK_STRIP_FILES YES)
