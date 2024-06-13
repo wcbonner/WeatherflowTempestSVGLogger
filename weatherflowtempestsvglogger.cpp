@@ -1,18 +1,20 @@
 #include "wimiso8601.h"
 #include <arpa/inet.h>
+#include <cfloat>
+#include <climits>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
-#include <fstream>
 #include <ctime>
 #include <filesystem>
+#include <fstream>
 #include <getopt.h>
 #include <iostream>
+#include <jsoncpp/json/json.h>
 #include <queue>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <jsoncpp/json/json.h>
 
 /////////////////////////////////////////////////////////////////////////////
 #if __has_include("weatherflowtempestsvglogger-version.h")
@@ -43,6 +45,111 @@ const size_t DAY_SAMPLE(5 * 60);		/* Sample every 5 minutes */
 const size_t WEEK_SAMPLE(30 * 60);		/* Sample every 30 minutes */
 const size_t MONTH_SAMPLE(2 * 60 * 60);	/* Sample every 2 hours */
 const size_t YEAR_SAMPLE(24 * 60 * 60);	/* Sample every 24 hours */
+/////////////////////////////////////////////////////////////////////////////
+class  TempestObservation {
+public:
+	time_t Time;
+	//std::string WriteTXT(const char seperator = '\t') const;
+	//std::string WriteCache(void) const;
+	//bool ReadCache(const std::string& data);
+	//bool ReadMSG(const uint8_t* const data);
+	TempestObservation() : Time(0), Temperature(0), TemperatureMin(DBL_MAX), TemperatureMax(-DBL_MAX), Humidity(0), HumidityMin(DBL_MAX), HumidityMax(-DBL_MAX), Battery(INT_MAX), Averages(0) { };
+	TempestObservation(const time_t tim, const double tem, const double hum, const int bat)
+	{
+		Time = tim;
+		Temperature = tem;
+		TemperatureMin = tem;
+		TemperatureMax = tem;
+		Humidity = hum;
+		HumidityMin = hum;
+		HumidityMax = hum;
+		Battery = bat;
+		Averages = 1;
+	};
+	TempestObservation(const std::string& data);
+	//double GetTemperature(const bool Fahrenheit = false, const int index = 0) const { if (Fahrenheit) return((Temperature[index] * 9.0 / 5.0) + 32.0); return(Temperature[index]); };
+	//double GetTemperatureMin(const bool Fahrenheit = false, const int index = 0) const { if (Fahrenheit) return(std::min(((Temperature[index] * 9.0 / 5.0) + 32.0), ((TemperatureMin[index] * 9.0 / 5.0) + 32.0))); return(std::min(Temperature[index], TemperatureMin[index])); };
+	//double GetTemperatureMax(const bool Fahrenheit = false, const int index = 0) const { if (Fahrenheit) return(std::max(((Temperature[index] * 9.0 / 5.0) + 32.0), ((TemperatureMax[index] * 9.0 / 5.0) + 32.0))); return(std::max(Temperature[index], TemperatureMax[index])); };
+	//void SetMinMax(const Govee_Temp& a);
+	//double GetHumidity(void) const { return(Humidity); };
+	//double GetHumidityMin(void) const { return(std::min(Humidity, HumidityMin)); };
+	//double GetHumidityMax(void) const { return(std::max(Humidity, HumidityMax)); };
+	//int GetBattery(void) const { return(Battery); };
+	//ThermometerType GetModel(void) const { return(Model); };
+	//ThermometerType SetModel(const std::string& Name);
+	//ThermometerType SetModel(const unsigned short* UUID);
+	enum granularity { day, week, month, year };
+	//void NormalizeTime(granularity type);
+	//granularity GetTimeGranularity(void) const;
+	//bool IsValid(void) const { return(Averages > 0); };
+	//Govee_Temp& operator +=(const Govee_Temp& b);
+protected:
+	int Averages;
+	double WindSpeed;
+	double WindSpeedMin;
+	double WindSpeedMax;
+	int WindDirection;
+	int WindInterval;
+	double OutsidePressure;
+	double OutsidePressureMin;
+	double OutsidePressureMax;
+	double Temperature;
+	double TemperatureMin;
+	double TemperatureMax;
+	double Humidity;
+	double HumidityMin;
+	double HumidityMax;
+	//auto illuminance = observation[0][5].asInt();
+	//auto UV = observation[0][5].asFloat();
+	//auto solar_radiation = observation[0][5].asInt();
+	//auto rain_accumulation_over_the_previous_minute = observation[0][5].asFloat();
+	//auto precipitation_type = observation[0][5].asInt();
+	//auto lightning_strike_average_distance = observation[0][5].asInt();
+	//auto lightning_strike_count = observation[0][5].asInt();
+	double Battery;
+	int ReportingInterval;
+};
+TempestObservation::TempestObservation(const std::string& JSonData)
+{
+	// https://github.com/open-source-parsers/jsoncpp
+	const auto rawJsonLength = static_cast<int>(JSonData.length());
+	JSONCPP_STRING err;
+	Json::Value root;
+	Json::CharReaderBuilder builder;
+	const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+	if (!reader->parse(JSonData.c_str(), JSonData.c_str() + rawJsonLength, &root, &err))
+	{
+		if (ConsoleVerbosity > 0)
+			std::cout << "json reader error" << std::endl;
+	}
+	else
+	{
+		const Json::Value observation = root["obs"];
+		if (observation.size() == 1)
+			if (observation[0].size() == 18)
+			{
+				//	{"serial_number":"ST-00145757","type":"obs_st","hub_sn":"HB-00147479","obs":[[1718217086,1.58,2.25,3.22,340,3,1025.33,14.58,60.34,138057,10.17,1150,0.000000,0,0,0,2.805,1]],"firmware_revision":176}
+				Time = observation[0][0].asLargestInt();
+				WindSpeedMin = observation[0][1].asDouble();
+				WindSpeed = observation[0][2].asDouble();
+				WindSpeedMax = observation[0][3].asDouble();
+				WindDirection = observation[0][4].asInt();
+				WindInterval = observation[0][5].asInt();
+				OutsidePressure = OutsidePressureMin = OutsidePressureMax = observation[0][6].asDouble();
+				Temperature = TemperatureMin = TemperatureMax = observation[0][7].asDouble();
+				Humidity = HumidityMin = HumidityMax = observation[0][8].asDouble();
+				auto illuminance = observation[0][9].asInt();
+				auto UV = observation[0][10].asDouble();
+				auto solar_radiation = observation[0][11].asInt();
+				auto rain_accumulation_over_the_previous_minute = observation[0][12].asDouble();
+				auto precipitation_type = observation[0][13].asInt();
+				auto lightning_strike_average_distance = observation[0][14].asInt();
+				auto lightning_strike_count = observation[0][15].asInt();
+				Battery = observation[0][16].asDouble();
+				ReportingInterval = observation[0][17].asInt();
+			}
+	}
+}
 /////////////////////////////////////////////////////////////////////////////
 bool ValidateDirectory(const std::filesystem::path& DirectoryName)
 {
@@ -144,10 +251,7 @@ bool GenerateLogFile(std::queue<std::string> & Data)
 	return(rval);
 }
 /////////////////////////////////////////////////////////////////////////////
-
-// msgs are super small
-#define BUF_SIZE 1024
-
+std::vector<TempestObservation> TempestMRTGLogs; // vector structure similar to MRTG Log Files
 /////////////////////////////////////////////////////////////////////////////
 volatile bool bRun = true; // This is declared volatile so that the compiler won't optimized it out of loops later in the code
 void SignalHandlerSIGINT(int signal)
@@ -317,7 +421,6 @@ int main(int argc, char** argv)
 	time(&TimeStart);
 	while (bRun)
 	{
-		char buf[BUF_SIZE];
 		unsigned slen = sizeof(sockaddr);
 		// This select() call coming up will sit and wait until until the socket read would return something that's not EAGAIN/EWOULDBLOCK
 		// But first we need to set a timeout -- we need to do this every time before we call select()
@@ -336,6 +439,8 @@ int main(int argc, char** argv)
 				// okay, if we made it this far, we can read our descriptor, and shouldn't get EAGAIN. Ideally, the right way to process this is 'read in a loop
 				// until you get EAGAIN and then go back to select()', but worst case is that you don't read everything availableand select() immediately returns, so not
 				// a *huge* deal just doing one read and then back to select, here.
+
+				char buf[1024];	// msgs are super small
 				struct sockaddr_in si_other;
 				auto bufDataLen = recvfrom(UDPSocket, buf, sizeof(buf), 0, (sockaddr*)&si_other, &slen);
 				//auto bufDataLen = read(s, buf, sizeof(buf));
@@ -382,32 +487,10 @@ int main(int argc, char** argv)
 					}
 					else if (!msgtype.compare("obs_st"))
 					{
-						const Json::Value observation = root["obs"];
-						if (observation.size() == 1)
-							if (observation[0].size() == 18)
-							{
-								//	{"serial_number":"ST-00145757","type":"obs_st","hub_sn":"HB-00147479","obs":[[1718217086,1.58,2.25,3.22,340,3,1025.33,14.58,60.34,138057,10.17,1150,0.000000,0,0,0,2.805,1]],"firmware_revision":176}
-								auto timetick = observation[0][0].asLargestInt();
-								auto wind_lull = observation[0][1].asFloat();
-								auto wind_average = observation[0][2].asFloat();
-								auto wind_gust = observation[0][3].asFloat();
-								auto wind_direction = observation[0][4].asInt();
-								auto wind_sample_interval = observation[0][5].asInt();
-								auto station_pressure = observation[0][5].asFloat();
-								auto air_temperature = observation[0][5].asFloat();
-								auto relative_humidity = observation[0][5].asFloat();
-								auto illuminance = observation[0][5].asInt();
-								auto UV = observation[0][5].asFloat();
-								auto solar_radiation = observation[0][5].asInt();
-								auto rain_accumulation_over_the_previous_minute = observation[0][5].asFloat();								
-								auto precipitation_type = observation[0][5].asInt();
-								auto lightning_strike_average_distance = observation[0][5].asInt();
-								auto lightning_strike_count = observation[0][5].asInt();
-								auto battery = observation[0][5].asFloat();
-								auto reporting_interval = observation[0][5].asInt();
-								if (ConsoleVerbosity > 1)
-									std::cout << "[" << getTimeISO8601() << "] Station Observation: " << timetick << std::endl;
-							}
+						TempestObservation observation(JSonData);
+						if (observation.Time != 0)
+							if (ConsoleVerbosity > 1)
+								std::cout << "[" << timeToISO8601(observation.Time) << "] observation read properly: " << JSonData << std::endl;
 					}
 				}
 			}
