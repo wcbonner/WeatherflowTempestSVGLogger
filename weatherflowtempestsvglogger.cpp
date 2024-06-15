@@ -12,6 +12,7 @@
 #include <iostream>
 #include <jsoncpp/json/json.h>
 #include <queue>
+#include <regex>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -50,8 +51,8 @@ class  TempestObservation {
 public:
 	time_t Time;
 	//std::string WriteTXT(const char seperator = '\t') const;
-	//std::string WriteCache(void) const;
-	//bool ReadCache(const std::string& data);
+	std::string WriteCache(void) const;
+	bool ReadCache(const std::string& data);
 	//bool ReadMSG(const uint8_t* const data);
 	TempestObservation() : Time(0), Temperature(0), TemperatureMin(DBL_MAX), TemperatureMax(-DBL_MAX), Humidity(0), HumidityMin(DBL_MAX), HumidityMax(-DBL_MAX), Battery(INT_MAX), Averages(0) { };
 	TempestObservation(const time_t tim, const double tem, const double hum, const int bat)
@@ -79,10 +80,10 @@ public:
 	//ThermometerType SetModel(const std::string& Name);
 	//ThermometerType SetModel(const unsigned short* UUID);
 	enum granularity { day, week, month, year };
-	//void NormalizeTime(granularity type);
-	//granularity GetTimeGranularity(void) const;
-	//bool IsValid(void) const { return(Averages > 0); };
-	//Govee_Temp& operator +=(const Govee_Temp& b);
+	void NormalizeTime(granularity type);
+	granularity GetTimeGranularity(void) const;
+	bool IsValid(void) const { return(Averages > 0); };
+	TempestObservation& operator +=(const TempestObservation& b);
 protected:
 	int Averages;
 	double WindSpeed;
@@ -149,6 +150,87 @@ TempestObservation::TempestObservation(const std::string& JSonData)
 				ReportingInterval = observation[0][17].asInt();
 			}
 	}
+}
+std::string TempestObservation::WriteCache(void) const
+{
+	std::ostringstream ssValue;
+	ssValue << Time;
+	ssValue << "\t" << Temperature;
+	ssValue << "\t" << TemperatureMin;
+	ssValue << "\t" << TemperatureMax;
+	ssValue << "\t" << Humidity;
+	ssValue << "\t" << HumidityMin;
+	ssValue << "\t" << HumidityMax;
+	ssValue << "\t" << Battery;
+	ssValue << "\t" << Averages;
+	return(ssValue.str());
+}
+bool TempestObservation::ReadCache(const std::string& data)
+{
+	bool rval = false;
+	std::istringstream ssValue(data);
+	ssValue >> Time;
+	ssValue >> Temperature;
+	ssValue >> TemperatureMin;
+	ssValue >> TemperatureMax;
+	ssValue >> Humidity;
+	ssValue >> HumidityMin;
+	ssValue >> HumidityMax;
+	ssValue >> Battery;
+	ssValue >> Averages;
+	return(rval);
+}
+void TempestObservation::NormalizeTime(granularity type)
+{
+	if (type == day)
+		Time = (Time / DAY_SAMPLE) * DAY_SAMPLE;
+	else if (type == week)
+		Time = (Time / WEEK_SAMPLE) * WEEK_SAMPLE;
+	else if (type == month)
+		Time = (Time / MONTH_SAMPLE) * MONTH_SAMPLE;
+	else if (type == year)
+	{
+		struct tm UTC;
+		if (0 != localtime_r(&Time, &UTC))
+		{
+			UTC.tm_hour = 0;
+			UTC.tm_min = 0;
+			UTC.tm_sec = 0;
+			Time = mktime(&UTC);
+		}
+	}
+}
+TempestObservation::granularity TempestObservation::GetTimeGranularity(void) const
+{
+	granularity rval = granularity::day;
+	struct tm UTC;
+	if (0 != localtime_r(&Time, &UTC))
+	{
+		//if (((UTC.tm_hour == 0) && (UTC.tm_min == 0)) || ((UTC.tm_hour == 23) && (UTC.tm_min == 0) && (UTC.tm_isdst == 1)))
+		if ((UTC.tm_hour == 0) && (UTC.tm_min == 0))
+			rval = granularity::year;
+		else if ((UTC.tm_hour % 2 == 0) && (UTC.tm_min == 0))
+			rval = granularity::month;
+		else if ((UTC.tm_min == 0) || (UTC.tm_min == 30))
+			rval = granularity::week;
+	}
+	return(rval);
+}
+TempestObservation& TempestObservation::operator +=(const TempestObservation& b)
+{
+	if (b.IsValid())
+	{
+		Time = std::max(Time, b.Time); // Use the maximum time (newest time)
+		Temperature = ((Temperature * Averages) + (b.Temperature * b.Averages)) / (Averages + b.Averages);
+		TemperatureMin = std::min(std::min(Temperature, TemperatureMin), b.TemperatureMin);
+		TemperatureMax = std::max(std::max(Temperature, TemperatureMax), b.TemperatureMax);
+		Humidity = ((Humidity * Averages) + (b.Humidity * b.Averages)) / (Averages + b.Averages);
+		HumidityMin = std::min(std::min(Humidity, HumidityMin), b.HumidityMin);
+		HumidityMax = std::max(std::max(Humidity, HumidityMax), b.HumidityMax);
+		Battery = std::min(Battery, b.Battery);
+		Averages += b.Averages; // existing average + new average
+	}
+	return(*this);
 }
 /////////////////////////////////////////////////////////////////////////////
 bool ValidateDirectory(const std::filesystem::path& DirectoryName)
@@ -252,6 +334,148 @@ bool GenerateLogFile(std::queue<std::string> & Data)
 }
 /////////////////////////////////////////////////////////////////////////////
 std::vector<TempestObservation> TempestMRTGLogs; // vector structure similar to MRTG Log Files
+/////////////////////////////////////////////////////////////////////////////
+void UpdateMRTGData(TempestObservation& TheValue)
+{
+	if (TempestMRTGLogs.empty())
+	{
+		TempestMRTGLogs.resize(2 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT + YEAR_COUNT);
+		TempestMRTGLogs[0] = TheValue;	// current value
+		TempestMRTGLogs[1] = TheValue;
+		for (auto index = 0; index < DAY_COUNT; index++)
+			TempestMRTGLogs[index + 2].Time = TempestMRTGLogs[index + 1].Time - DAY_SAMPLE;
+		for (auto index = 0; index < WEEK_COUNT; index++)
+			TempestMRTGLogs[index + 2 + DAY_COUNT].Time = TempestMRTGLogs[index + 1 + DAY_COUNT].Time - WEEK_SAMPLE;
+		for (auto index = 0; index < MONTH_COUNT; index++)
+			TempestMRTGLogs[index + 2 + DAY_COUNT + WEEK_COUNT].Time = TempestMRTGLogs[index + 1 + DAY_COUNT + WEEK_COUNT].Time - MONTH_SAMPLE;
+		for (auto index = 0; index < YEAR_COUNT; index++)
+			TempestMRTGLogs[index + 2 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT].Time = TempestMRTGLogs[index + 1 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT].Time - YEAR_SAMPLE;
+	}
+	else
+	{
+		if (TheValue.Time > TempestMRTGLogs[0].Time)
+		{
+			TempestMRTGLogs[0] = TheValue;	// current value
+			TempestMRTGLogs[1] += TheValue; // averaged value up to DAY_SAMPLE size
+		}
+	}
+	bool ZeroAccumulator = false;
+	auto DaySampleFirst = TempestMRTGLogs.begin() + 2;
+	auto DaySampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT;
+	auto WeekSampleFirst = TempestMRTGLogs.begin() + 2 + DAY_COUNT;
+	auto WeekSampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT + WEEK_COUNT;
+	auto MonthSampleFirst = TempestMRTGLogs.begin() + 2 + DAY_COUNT + WEEK_COUNT;
+	auto MonthSampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT;
+	auto YearSampleFirst = TempestMRTGLogs.begin() + 2 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT;
+	auto YearSampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT + YEAR_COUNT;
+	// For every time difference between FakeMRTGFile[1] and FakeMRTGFile[2] that's greater than DAY_SAMPLE we shift that data towards the back.
+	while (difftime(TempestMRTGLogs[1].Time, DaySampleFirst->Time) > DAY_SAMPLE)
+	{
+		ZeroAccumulator = true;
+		// shuffle all the day samples toward the end
+		std::copy_backward(DaySampleFirst, DaySampleLast - 1, DaySampleLast);
+		*DaySampleFirst = TempestMRTGLogs[1];
+		DaySampleFirst->NormalizeTime(TempestObservation::granularity::day);
+		if (difftime(DaySampleFirst->Time, (DaySampleFirst + 1)->Time) > DAY_SAMPLE)
+			DaySampleFirst->Time = (DaySampleFirst + 1)->Time + DAY_SAMPLE;
+		if (DaySampleFirst->GetTimeGranularity() == TempestObservation::granularity::year)
+		{
+			if (ConsoleVerbosity > 2)
+				std::cout << "[" << getTimeISO8601() << "] shuffling year " << timeToExcelLocal(DaySampleFirst->Time) << " > " << timeToExcelLocal(YearSampleFirst->Time) << std::endl;
+			// shuffle all the year samples toward the end
+			std::copy_backward(YearSampleFirst, YearSampleLast - 1, YearSampleLast);
+			*YearSampleFirst = TempestObservation();
+			for (auto iter = DaySampleFirst; (iter->IsValid() && ((iter - DaySampleFirst) < (12 * 24))); iter++) // One Day of day samples
+				*YearSampleFirst += *iter;
+		}
+		if ((DaySampleFirst->GetTimeGranularity() == TempestObservation::granularity::year) ||
+			(DaySampleFirst->GetTimeGranularity() == TempestObservation::granularity::month))
+		{
+			if (ConsoleVerbosity > 2)
+				std::cout << "[" << getTimeISO8601() << "] shuffling month " << timeToExcelLocal(DaySampleFirst->Time) << std::endl;
+			// shuffle all the month samples toward the end
+			std::copy_backward(MonthSampleFirst, MonthSampleLast - 1, MonthSampleLast);
+			*MonthSampleFirst = TempestObservation();
+			for (auto iter = DaySampleFirst; (iter->IsValid() && ((iter - DaySampleFirst) < (12 * 2))); iter++) // two hours of day samples
+				*MonthSampleFirst += *iter;
+		}
+		if ((DaySampleFirst->GetTimeGranularity() == TempestObservation::granularity::year) ||
+			(DaySampleFirst->GetTimeGranularity() == TempestObservation::granularity::month) ||
+			(DaySampleFirst->GetTimeGranularity() == TempestObservation::granularity::week))
+		{
+			if (ConsoleVerbosity > 2)
+				std::cout << "[" << getTimeISO8601() << "] shuffling week " << timeToExcelLocal(DaySampleFirst->Time) << std::endl;
+			// shuffle all the month samples toward the end
+			std::copy_backward(WeekSampleFirst, WeekSampleLast - 1, WeekSampleLast);
+			*WeekSampleFirst = TempestObservation();
+			for (auto iter = DaySampleFirst; (iter->IsValid() && ((iter - DaySampleFirst) < 6)); iter++) // Half an hour of day samples
+				*WeekSampleFirst += *iter;
+		}
+	}
+	if (ZeroAccumulator)
+		TempestMRTGLogs[1] = TempestObservation();
+}
+void ReadLoggedData(const std::filesystem::path& filename)
+{
+	// Only read the file if it's newer than what we may have cached
+	bool bReadFile = true;
+	struct stat64 FileStat;
+	FileStat.st_mtim.tv_sec = 0;
+	if (0 == stat64(filename.c_str(), &FileStat))	// returns 0 if the file-status information is obtained
+	{
+		if (!TempestMRTGLogs.empty())
+			if (FileStat.st_mtim.tv_sec < (TempestMRTGLogs.begin()->Time))	// only read the file if it more recent than existing data
+				bReadFile = false;
+	}
+
+	if (bReadFile)
+	{
+		if (ConsoleVerbosity > 0)
+			std::cout << "[" << getTimeISO8601() << "] Reading: " << filename.string() << std::endl;
+		else
+			std::cerr << "Reading: " << filename.string() << std::endl;
+		std::ifstream TheFile(filename);
+		if (TheFile.is_open())
+		{
+			std::vector<std::string> SortableFile;
+			std::string TheLine;
+			while (std::getline(TheFile, TheLine))
+				SortableFile.push_back(TheLine);
+			TheFile.close();
+			sort(SortableFile.begin(), SortableFile.end());
+			for (auto iter = SortableFile.begin(); iter != SortableFile.end(); iter++)
+			{
+				TempestObservation TheValue(*iter);
+				if (TheValue.IsValid())
+					UpdateMRTGData(TheValue);
+			}
+		}
+	}
+}
+// Finds log files specific to this program then reads the contents into the memory mapped structure simulating MRTG log files.
+void ReadLoggedData(void)
+{
+	const std::regex LogFileRegex("weatherflow-[[:digit:]]{4}-[[:digit:]]{2}.txt");
+	if (!LogDirectory.empty())
+	{
+		if (ConsoleVerbosity > 1)
+			std::cout << "[" << getTimeISO8601() << "] ReadLoggedData: " << LogDirectory << std::endl;
+		std::deque<std::filesystem::path> files;
+		for (auto const& dir_entry : std::filesystem::directory_iterator{ LogDirectory })
+			if (dir_entry.is_regular_file())
+				if (std::regex_match(dir_entry.path().filename().string(), LogFileRegex))
+					files.push_back(dir_entry);
+		if (!files.empty())
+		{
+			sort(files.begin(), files.end());
+			while (!files.empty())
+			{
+				ReadLoggedData(*files.begin());
+				files.pop_front();
+			}
+		}
+	}
+}
 /////////////////////////////////////////////////////////////////////////////
 volatile bool bRun = true; // This is declared volatile so that the compiler won't optimized it out of loops later in the code
 void SignalHandlerSIGINT(int signal)
