@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <utime.h>
 
 /////////////////////////////////////////////////////////////////////////////
 #if __has_include("weatherflowtempestsvglogger-version.h")
@@ -68,14 +69,14 @@ public:
 		Averages = 1;
 	};
 	TempestObservation(const std::string& data);
-	//double GetTemperature(const bool Fahrenheit = false, const int index = 0) const { if (Fahrenheit) return((Temperature[index] * 9.0 / 5.0) + 32.0); return(Temperature[index]); };
-	//double GetTemperatureMin(const bool Fahrenheit = false, const int index = 0) const { if (Fahrenheit) return(std::min(((Temperature[index] * 9.0 / 5.0) + 32.0), ((TemperatureMin[index] * 9.0 / 5.0) + 32.0))); return(std::min(Temperature[index], TemperatureMin[index])); };
-	//double GetTemperatureMax(const bool Fahrenheit = false, const int index = 0) const { if (Fahrenheit) return(std::max(((Temperature[index] * 9.0 / 5.0) + 32.0), ((TemperatureMax[index] * 9.0 / 5.0) + 32.0))); return(std::max(Temperature[index], TemperatureMax[index])); };
+	double GetTemperature(const bool Fahrenheit = false) const { if (Fahrenheit) return((Temperature * 9.0 / 5.0) + 32.0); return(Temperature); };
+	double GetTemperatureMin(const bool Fahrenheit = false) const { if (Fahrenheit) return(std::min(((Temperature * 9.0 / 5.0) + 32.0), ((TemperatureMin * 9.0 / 5.0) + 32.0))); return(std::min(Temperature, TemperatureMin)); };
+	double GetTemperatureMax(const bool Fahrenheit = false) const { if (Fahrenheit) return(std::max(((Temperature * 9.0 / 5.0) + 32.0), ((TemperatureMax * 9.0 / 5.0) + 32.0))); return(std::max(Temperature, TemperatureMax)); };
 	//void SetMinMax(const Govee_Temp& a);
-	//double GetHumidity(void) const { return(Humidity); };
-	//double GetHumidityMin(void) const { return(std::min(Humidity, HumidityMin)); };
-	//double GetHumidityMax(void) const { return(std::max(Humidity, HumidityMax)); };
-	//int GetBattery(void) const { return(Battery); };
+	double GetHumidity(void) const { return(Humidity); };
+	double GetHumidityMin(void) const { return(std::min(Humidity, HumidityMin)); };
+	double GetHumidityMax(void) const { return(std::max(Humidity, HumidityMax)); };
+	int GetBattery(void) const { return(Battery); };
 	//ThermometerType GetModel(void) const { return(Model); };
 	//ThermometerType SetModel(const std::string& Name);
 	//ThermometerType SetModel(const unsigned short* UUID);
@@ -476,6 +477,439 @@ void ReadLoggedData(void)
 		}
 	}
 }
+void ReadCacheDirectory(void)
+{
+	const std::regex CacheFileRegex("^gvh-[[:xdigit:]]{12}-cache.txt");
+	if (!CacheDirectory.empty())
+	{
+		if (ConsoleVerbosity > 1)
+			std::cout << "[" << getTimeISO8601() << "] ReadCacheDirectory: " << CacheDirectory << std::endl;
+		std::deque<std::filesystem::path> files;
+		for (auto const& dir_entry : std::filesystem::directory_iterator{ CacheDirectory })
+			if (dir_entry.is_regular_file())
+				if (std::regex_match(dir_entry.path().filename().string(), CacheFileRegex))
+					files.push_back(dir_entry);
+		if (!files.empty())
+		{
+			sort(files.begin(), files.end());
+			while (!files.empty())
+			{
+				std::ifstream TheFile(*files.begin());
+				if (TheFile.is_open())
+				{
+					if (ConsoleVerbosity > 0)
+						std::cout << "[" << getTimeISO8601(true) << "] Reading: " << files.begin()->string() << std::endl;
+					else
+						std::cerr << "Reading: " << files.begin()->string() << std::endl;
+					std::string TheLine;
+					if (std::getline(TheFile, TheLine))
+					{
+						const std::regex CacheFirstLineRegex("^Cache: ((([[:xdigit:]]{2}:){5}))[[:xdigit:]]{2}.*");
+						// every Cache File should have a start line with the name Cache, the Bluetooth Address, and the creator version. 
+						// TODO: check to make sure the version is compatible
+						if (std::regex_match(TheLine, CacheFirstLineRegex))
+						{
+							const std::regex BluetoothAddressRegex("((([[:xdigit:]]{2}:){5}))[[:xdigit:]]{2}");
+							std::smatch BluetoothAddress;
+							if (std::regex_search(TheLine, BluetoothAddress, BluetoothAddressRegex))
+							{
+								//bdaddr_t TheBlueToothAddress({ 0 });
+								//str2ba(BluetoothAddress.str().c_str(), &TheBlueToothAddress);
+								//std::vector<Govee_Temp> FakeMRTGFile;
+								//FakeMRTGFile.reserve(2 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT + YEAR_COUNT); // this might speed things up slightly
+								//while (std::getline(TheFile, TheLine))
+								//{
+								//	Govee_Temp value;
+								//	value.ReadCache(TheLine);
+								//	FakeMRTGFile.push_back(value);
+								//}
+								//if (FakeMRTGFile.size() == (2 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT + YEAR_COUNT)) // simple check to see if we are the right size
+								//	GoveeMRTGLogs.insert(std::pair<bdaddr_t, std::vector<Govee_Temp>>(TheBlueToothAddress, FakeMRTGFile));
+							}
+						}
+					}
+					TheFile.close();
+				}
+				files.pop_front();
+			}
+		}
+	}
+}
+enum class GraphType { daily, weekly, monthly, yearly };
+// Returns a curated vector of data points specific to the requested graph type from the internal memory structure map keyed off the Bluetooth address.
+void ReadMRTGData(std::vector<TempestObservation>& TheValues, const GraphType graph = GraphType::daily)
+{
+	if (TempestMRTGLogs.size() > 0)
+	{
+		auto DaySampleFirst = TempestMRTGLogs.begin() + 2;
+		auto DaySampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT;
+		auto WeekSampleFirst = TempestMRTGLogs.begin() + 2 + DAY_COUNT;
+		auto WeekSampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT + WEEK_COUNT;
+		auto MonthSampleFirst = TempestMRTGLogs.begin() + 2 + DAY_COUNT + WEEK_COUNT;
+		auto MonthSampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT;
+		auto YearSampleFirst = TempestMRTGLogs.begin() + 2 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT;
+		auto YearSampleLast = TempestMRTGLogs.begin() + 1 + DAY_COUNT + WEEK_COUNT + MONTH_COUNT + YEAR_COUNT;
+		if (graph == GraphType::daily)
+		{
+			TheValues.resize(DAY_COUNT);
+			std::copy(DaySampleFirst, DaySampleLast, TheValues.begin());
+			auto iter = TheValues.begin();
+			while (iter->IsValid() && (iter != TheValues.end()))
+				iter++;
+			TheValues.resize(iter - TheValues.begin());
+			TheValues.begin()->Time = TempestMRTGLogs.begin()->Time; //HACK: include the most recent time sample
+		}
+		else if (graph == GraphType::weekly)
+		{
+			TheValues.resize(WEEK_COUNT);
+			std::copy(WeekSampleFirst, WeekSampleLast, TheValues.begin());
+			auto iter = TheValues.begin();
+			while (iter->IsValid() && (iter != TheValues.end()))
+				iter++;
+			TheValues.resize(iter - TheValues.begin());
+		}
+		else if (graph == GraphType::monthly)
+		{
+			TheValues.resize(MONTH_COUNT);
+			std::copy(MonthSampleFirst, MonthSampleLast, TheValues.begin());
+			auto iter = TheValues.begin();
+			while (iter->IsValid() && (iter != TheValues.end()))
+				iter++;
+			TheValues.resize(iter - TheValues.begin());
+		}
+		else if (graph == GraphType::yearly)
+		{
+			TheValues.resize(YEAR_COUNT);
+			std::copy(YearSampleFirst, YearSampleLast, TheValues.begin());
+			auto iter = TheValues.begin();
+			while (iter->IsValid() && (iter != TheValues.end()))
+				iter++;
+			TheValues.resize(iter - TheValues.begin());
+		}
+	}
+}
+void WriteSVG(std::vector<TempestObservation>& TheValues, const std::filesystem::path& SVGFileName, const std::string& Title = "", const GraphType graph = GraphType::daily, const bool Fahrenheit = true, const bool DrawBattery = false, const bool MinMax = false)
+{
+	// By declaring these items here, I'm then basing all my other dimensions on these
+	const int SVGWidth(500);
+	const int SVGHeight(135);
+	const int FontSize(12);
+	const int TickSize(2);
+	int GraphWidth = SVGWidth - (FontSize * 5);
+	const bool DrawHumidity = TheValues[0].GetHumidity() != 0; // HACK: I should really check the entire data set
+	if (!TheValues.empty())
+	{
+		struct stat64 SVGStat({ 0 });	// Zero the stat64 structure on allocation
+		if (-1 == stat64(SVGFileName.c_str(), &SVGStat))
+			if (ConsoleVerbosity > 3)
+				std::cout << "[" << getTimeISO8601(true) << "] " << std::strerror(errno) << ": " << SVGFileName << std::endl;
+		if (TheValues.begin()->Time > SVGStat.st_mtim.tv_sec)	// only write the file if we have new data
+		{
+			std::ofstream SVGFile(SVGFileName);
+			if (SVGFile.is_open())
+			{
+				if (ConsoleVerbosity > 0)
+					std::cout << "[" << getTimeISO8601() << "] Writing: " << SVGFileName.string() << " With Title: " << Title << std::endl;
+				else
+					std::cerr << "Writing: " << SVGFileName.string() << " With Title: " << Title << std::endl;
+				std::ostringstream tempOString;
+				tempOString << "Temperature (" << std::fixed << std::setprecision(1) << TheValues[0].GetTemperature(Fahrenheit) << (Fahrenheit ? "°F)" : "°C)");
+				std::string YLegendTemperature(tempOString.str());
+				tempOString = std::ostringstream();
+				tempOString << "Humidity (" << std::fixed << std::setprecision(1) << TheValues[0].GetHumidity() << "%)";
+				std::string YLegendHumidity(tempOString.str());
+				tempOString = std::ostringstream();
+				tempOString << "Battery (" << TheValues[0].GetBattery() << "%)";
+				std::string YLegendBattery(tempOString.str());
+				int GraphTop = FontSize + TickSize;
+				int GraphBottom = SVGHeight - GraphTop;
+				int GraphRight = SVGWidth - GraphTop;
+				if (DrawHumidity)
+				{
+					GraphWidth -= FontSize * 2;
+					GraphRight -= FontSize + TickSize * 2;
+				}
+				if (DrawBattery)
+					GraphWidth -= FontSize;
+				int GraphLeft = GraphRight - GraphWidth;
+				int GraphVerticalDivision = (GraphBottom - GraphTop) / 4;
+				double TempMin = DBL_MAX;
+				double TempMax = -DBL_MAX;
+				double HumiMin = DBL_MAX;
+				double HumiMax = -DBL_MAX;
+				if (MinMax)
+					for (auto index = 0; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+					{
+						TempMin = std::min(TempMin, TheValues[index].GetTemperatureMin(Fahrenheit));
+						TempMax = std::max(TempMax, TheValues[index].GetTemperatureMax(Fahrenheit));
+						HumiMin = std::min(HumiMin, TheValues[index].GetHumidityMin());
+						HumiMax = std::max(HumiMax, TheValues[index].GetHumidityMax());
+					}
+				else
+					for (auto index = 0; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+					{
+						TempMin = std::min(TempMin, TheValues[index].GetTemperature(Fahrenheit));
+						TempMax = std::max(TempMax, TheValues[index].GetTemperature(Fahrenheit));
+						HumiMin = std::min(HumiMin, TheValues[index].GetHumidity());
+						HumiMax = std::max(HumiMax, TheValues[index].GetHumidity());
+					}
+
+				double TempVerticalDivision = (TempMax - TempMin) / 4;
+				double TempVerticalFactor = (GraphBottom - GraphTop) / (TempMax - TempMin);
+				double HumiVerticalDivision = (HumiMax - HumiMin) / 4;
+				double HumiVerticalFactor = (GraphBottom - GraphTop) / (HumiMax - HumiMin);
+				int FreezingLine = 0; // outside the range of the graph
+				if (Fahrenheit)
+				{
+					if ((TempMin < 32) && (32 < TempMax))
+						FreezingLine = ((TempMax - 32.0) * TempVerticalFactor) + GraphTop;
+				}
+				else
+				{
+					if ((TempMin < 0) && (0 < TempMax))
+						FreezingLine = (TempMax * TempVerticalFactor) + GraphTop;
+				}
+
+				SVGFile << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>" << std::endl;
+				SVGFile << "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"" << SVGWidth << "\" height=\"" << SVGHeight << "\">" << std::endl;
+				SVGFile << "\t<!-- Created by: " << ProgramVersionString << " -->" << std::endl;
+				SVGFile << "\t<clipPath id=\"GraphRegion\"><polygon points=\"" << GraphLeft << "," << GraphTop << " " << GraphRight << "," << GraphTop << " " << GraphRight << "," << GraphBottom << " " << GraphLeft << "," << GraphBottom << "\" /></clipPath>" << std::endl;
+				SVGFile << "\t<style>" << std::endl;
+				SVGFile << "\t\ttext { font-family: sans-serif; font-size: " << FontSize << "px; fill: black; }" << std::endl;
+				SVGFile << "\t\tline { stroke: black; }" << std::endl;
+				SVGFile << "\t\tpolygon { fill-opacity: 0.5; }" << std::endl;
+#ifdef _DARK_STYLE_
+				SVGFile << "\t@media only screen and (prefers-color-scheme: dark) {" << std::endl;
+				SVGFile << "\t\ttext { fill: grey; }" << std::endl;
+				SVGFile << "\t\tline { stroke: grey; }" << std::endl;
+				SVGFile << "\t}" << std::endl;
+#endif // _DARK_STYLE_
+				SVGFile << "\t</style>" << std::endl;
+#ifdef DEBUG
+				SVGFile << "<!-- HumiMax: " << HumiMax << " -->" << std::endl;
+				SVGFile << "<!-- HumiMin: " << HumiMin << " -->" << std::endl;
+				SVGFile << "<!-- HumiVerticalFactor: " << HumiVerticalFactor << " -->" << std::endl;
+#endif // DEBUG
+				SVGFile << "\t<rect style=\"fill-opacity:0;stroke:grey;stroke-width:2\" width=\"" << SVGWidth << "\" height=\"" << SVGHeight << "\" />" << std::endl;
+
+				// Legend Text
+				int LegendIndex = 1;
+				SVGFile << "\t<text x=\"" << GraphLeft << "\" y=\"" << GraphTop - 2 << "\">" << Title << "</text>" << std::endl;
+				SVGFile << "\t<text style=\"text-anchor:end\" x=\"" << GraphRight << "\" y=\"" << GraphTop - 2 << "\">" << timeToExcelLocal(TheValues[0].Time) << "</text>" << std::endl;
+				SVGFile << "\t<text style=\"fill:blue;text-anchor:middle\" x=\"" << FontSize * LegendIndex << "\" y=\"50%\" transform=\"rotate(270 " << FontSize * LegendIndex << "," << (GraphTop + GraphBottom) / 2 << ")\">" << YLegendTemperature << "</text>" << std::endl;
+				if (DrawHumidity)
+				{
+					LegendIndex++;
+					SVGFile << "\t<text style=\"fill:green;text-anchor:middle\" x=\"" << FontSize * LegendIndex << "\" y=\"50%\" transform=\"rotate(270 " << FontSize * LegendIndex << "," << (GraphTop + GraphBottom) / 2 << ")\">" << YLegendHumidity << "</text>" << std::endl;
+				}
+				if (DrawBattery)
+				{
+					LegendIndex++;
+					SVGFile << "\t<text style=\"fill:OrangeRed\" text-anchor=\"middle\" x=\"" << FontSize * LegendIndex << "\" y=\"50%\" transform=\"rotate(270 " << FontSize * LegendIndex << "," << (GraphTop + GraphBottom) / 2 << ")\">" << YLegendBattery << "</text>" << std::endl;
+				}
+				if (DrawHumidity)
+				{
+					if (MinMax)
+					{
+						SVGFile << "\t<!-- Humidity Max -->" << std::endl;
+						SVGFile << "\t<polygon style=\"fill:lime;stroke:green;clip-path:url(#GraphRegion)\" points=\"";
+						SVGFile << GraphLeft + 1 << "," << GraphBottom - 1 << " ";
+						for (auto index = 0; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+							SVGFile << index + GraphLeft << "," << int(((HumiMax - TheValues[index].GetHumidityMax()) * HumiVerticalFactor) + GraphTop) << " ";
+						if (GraphWidth < TheValues.size())
+							SVGFile << GraphRight - 1 << "," << GraphBottom - 1;
+						else
+							SVGFile << GraphRight - (GraphWidth - TheValues.size()) << "," << GraphBottom - 1;
+						SVGFile << "\" />" << std::endl;
+						SVGFile << "\t<!-- Humidity Min -->" << std::endl;
+						SVGFile << "\t<polygon style=\"fill:lime;stroke:green;clip-path:url(#GraphRegion)\" points=\"";
+						SVGFile << GraphLeft + 1 << "," << GraphBottom - 1 << " ";
+						for (auto index = 0; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+							SVGFile << index + GraphLeft << "," << int(((HumiMax - TheValues[index].GetHumidityMin()) * HumiVerticalFactor) + GraphTop) << " ";
+						if (GraphWidth < TheValues.size())
+							SVGFile << GraphRight - 1 << "," << GraphBottom - 1;
+						else
+							SVGFile << GraphRight - (GraphWidth - TheValues.size()) << "," << GraphBottom - 1;
+						SVGFile << "\" />" << std::endl;
+					}
+					else
+					{
+						// Humidity Graphic as a Filled polygon
+						SVGFile << "\t<!-- Humidity -->" << std::endl;
+						SVGFile << "\t<polygon style=\"fill:lime;stroke:green;clip-path:url(#GraphRegion)\" points=\"";
+						SVGFile << GraphLeft + 1 << "," << GraphBottom - 1 << " ";
+						for (auto index = 0; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+							SVGFile << index + GraphLeft << "," << int(((HumiMax - TheValues[index].GetHumidity()) * HumiVerticalFactor) + GraphTop) << " ";
+						if (GraphWidth < TheValues.size())
+							SVGFile << GraphRight - 1 << "," << GraphBottom - 1;
+						else
+							SVGFile << GraphRight - (GraphWidth - TheValues.size()) << "," << GraphBottom - 1;
+						SVGFile << "\" />" << std::endl;
+					}
+				}
+
+				// Top Line
+				SVGFile << "\t<line x1=\"" << GraphLeft - TickSize << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << GraphTop << "\"/>" << std::endl;
+				SVGFile << "\t<text style=\"fill:blue;text-anchor:end;dominant-baseline:middle\" x=\"" << GraphLeft - TickSize << "\" y=\"" << GraphTop << "\">" << std::fixed << std::setprecision(1) << TempMax << "</text>" << std::endl;
+				if (DrawHumidity)
+					SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphTop << "\">" << std::fixed << std::setprecision(1) << HumiMax << "</text>" << std::endl;
+
+				// Bottom Line
+				SVGFile << "\t<line x1=\"" << GraphLeft - TickSize << "\" y1=\"" << GraphBottom << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << GraphBottom << "\"/>" << std::endl;
+				SVGFile << "\t<text style=\"fill:blue;text-anchor:end;dominant-baseline:middle\" x=\"" << GraphLeft - TickSize << "\" y=\"" << GraphBottom << "\">" << std::fixed << std::setprecision(1) << TempMin << "</text>" << std::endl;
+				if (DrawHumidity)
+					SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphBottom << "\">" << std::fixed << std::setprecision(1) << HumiMin << "</text>" << std::endl;
+
+				// Left Line
+				SVGFile << "\t<line x1=\"" << GraphLeft << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft << "\" y2=\"" << GraphBottom << "\"/>" << std::endl;
+
+				// Right Line
+				SVGFile << "\t<line x1=\"" << GraphRight << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphRight << "\" y2=\"" << GraphBottom << "\"/>" << std::endl;
+
+				// Vertical Division Dashed Lines
+				for (auto index = 1; index < 4; index++)
+				{
+					SVGFile << "\t<line style=\"stroke-dasharray:1\" x1=\"" << GraphLeft - TickSize << "\" y1=\"" << GraphTop + (GraphVerticalDivision * index) << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << GraphTop + (GraphVerticalDivision * index) << "\" />" << std::endl;
+					SVGFile << "\t<text style=\"fill:blue;text-anchor:end;dominant-baseline:middle\" x=\"" << GraphLeft - TickSize << "\" y=\"" << GraphTop + (GraphVerticalDivision * index) << "\">" << std::fixed << std::setprecision(1) << TempMax - (TempVerticalDivision * index) << "</text>" << std::endl;
+					if (DrawHumidity)
+						SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphTop + (GraphVerticalDivision * index) << "\">" << std::fixed << std::setprecision(1) << HumiMax - (HumiVerticalDivision * index) << "</text>" << std::endl;
+				}
+
+				// Horizontal Line drawn at the freezing point
+				if ((GraphTop < FreezingLine) && (FreezingLine < GraphBottom))
+				{
+					SVGFile << "\t<!-- FreezingLine = " << FreezingLine << " -->" << std::endl;
+					SVGFile << "\t<line style=\"fill:red;stroke:red;stroke-dasharray:1\" x1=\"" << GraphLeft - TickSize << "\" y1=\"" << FreezingLine << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << FreezingLine << "\" />" << std::endl;
+				}
+
+				// Horizontal Division Dashed Lines
+				for (auto index = 0; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+				{
+					struct tm UTC;
+					if (0 != localtime_r(&TheValues[index].Time, &UTC))
+					{
+						if (graph == GraphType::daily)
+						{
+							if (UTC.tm_min == 0)
+							{
+								if (UTC.tm_hour == 0)
+									SVGFile << "\t<line style=\"stroke:red\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+								else
+									SVGFile << "\t<line style=\"stroke-dasharray:1\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+								if (UTC.tm_hour % 2 == 0)
+									SVGFile << "\t<text style=\"text-anchor:middle\" x=\"" << GraphLeft + index << "\" y=\"" << SVGHeight - 2 << "\">" << UTC.tm_hour << "</text>" << std::endl;
+							}
+						}
+						else if (graph == GraphType::weekly)
+						{
+							const std::string Weekday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+							if ((UTC.tm_hour == 0) && (UTC.tm_min == 0))
+							{
+								if (UTC.tm_wday == 0)
+									SVGFile << "\t<line style=\"stroke:red\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+								else
+									SVGFile << "\t<line style=\"stroke-dasharray:1\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+							}
+							else if ((UTC.tm_hour == 12) && (UTC.tm_min == 0))
+								SVGFile << "\t<text style=\"text-anchor:middle\" x=\"" << GraphLeft + index << "\" y=\"" << SVGHeight - 2 << "\">" << Weekday[UTC.tm_wday] << "</text>" << std::endl;
+						}
+						else if (graph == GraphType::monthly)
+						{
+							if ((UTC.tm_mday == 1) && (UTC.tm_hour == 0) && (UTC.tm_min == 0))
+								SVGFile << "\t<line style=\"stroke:red\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+							if ((UTC.tm_wday == 0) && (UTC.tm_hour == 0) && (UTC.tm_min == 0))
+								SVGFile << "\t<line style=\"stroke-dasharray:1\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+							else if ((UTC.tm_wday == 3) && (UTC.tm_hour == 12) && (UTC.tm_min == 0))
+								SVGFile << "\t<text style=\"text-anchor:middle\" x=\"" << GraphLeft + index << "\" y=\"" << SVGHeight - 2 << "\">Week " << UTC.tm_yday / 7 + 1 << "</text>" << std::endl;
+						}
+						else if (graph == GraphType::yearly)
+						{
+							const std::string Month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+							if ((UTC.tm_yday == 0) && (UTC.tm_mday == 1) && (UTC.tm_hour == 0) && (UTC.tm_min == 0))
+								SVGFile << "\t<line style=\"stroke:red\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+							else if ((UTC.tm_mday == 1) && (UTC.tm_hour == 0) && (UTC.tm_min == 0))
+								SVGFile << "\t<line style=\"stroke-dasharray:1\" x1=\"" << GraphLeft + index << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft + index << "\" y2=\"" << GraphBottom + TickSize << "\" />" << std::endl;
+							else if ((UTC.tm_mday == 15) && (UTC.tm_hour == 0) && (UTC.tm_min == 0))
+								SVGFile << "\t<text style=\"text-anchor:middle\" x=\"" << GraphLeft + index << "\" y=\"" << SVGHeight - 2 << "\">" << Month[UTC.tm_mon] << "</text>" << std::endl;
+						}
+					}
+				}
+
+				// Directional Arrow
+				SVGFile << "\t<polygon style=\"fill:red;stroke:red;fill-opacity:1;\" points=\"" << GraphLeft - 3 << "," << GraphBottom << " " << GraphLeft + 3 << "," << GraphBottom - 3 << " " << GraphLeft + 3 << "," << GraphBottom + 3 << "\" />" << std::endl;
+
+				if (MinMax)
+				{
+					// Temperature Values as a filled polygon showing the minimum and maximum
+					SVGFile << "\t<!-- Temperature MinMax -->" << std::endl;
+					SVGFile << "\t<polygon style=\"fill:blue;stroke:blue;clip-path:url(#GraphRegion)\" points=\"";
+					for (auto index = 1; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+						SVGFile << index + GraphLeft << "," << int(((TempMax - TheValues[index].GetTemperatureMax(Fahrenheit)) * TempVerticalFactor) + GraphTop) << " ";
+					for (auto index = (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()) - 1; index > 0; index--)
+						SVGFile << index + GraphLeft << "," << int(((TempMax - TheValues[index].GetTemperatureMin(Fahrenheit)) * TempVerticalFactor) + GraphTop) << " ";
+					SVGFile << "\" />" << std::endl;
+				}
+				else
+				{
+					// Temperature Values as a continuous line
+					SVGFile << "\t<!-- Temperature -->" << std::endl;
+					SVGFile << "\t<polyline style=\"fill:none;stroke:blue;clip-path:url(#GraphRegion)\" points=\"";
+					for (auto index = 1; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+						SVGFile << index + GraphLeft << "," << int(((TempMax - TheValues[index].GetTemperature(Fahrenheit)) * TempVerticalFactor) + GraphTop) << " ";
+					SVGFile << "\" />" << std::endl;
+				}
+
+				// Battery Values as a continuous line
+				if (DrawBattery)
+				{
+					SVGFile << "\t<!-- Battery -->" << std::endl;
+					double BatteryVerticalFactor = (GraphBottom - GraphTop) / 100.0;
+					SVGFile << "\t<polyline style=\"fill:none;stroke:OrangeRed;clip-path:url(#GraphRegion)\" points=\"";
+					for (auto index = 1; index < (GraphWidth < TheValues.size() ? GraphWidth : TheValues.size()); index++)
+						SVGFile << index + GraphLeft << "," << int(((100 - TheValues[index].GetBattery()) * BatteryVerticalFactor) + GraphTop) << " ";
+					SVGFile << "\" />" << std::endl;
+				}
+
+				SVGFile << "</svg>" << std::endl;
+				SVGFile.close();
+				struct utimbuf SVGut;
+				SVGut.actime = TheValues.begin()->Time;
+				SVGut.modtime = TheValues.begin()->Time;
+				utime(SVGFileName.c_str(), &SVGut);
+			}
+		}
+	}
+}
+void WriteAllSVG()
+{
+	std::string ssTitle("Tempest");
+	std::filesystem::path OutputPath;
+	std::ostringstream OutputFilename;
+	OutputFilename.str("");
+	OutputFilename << "weatherflow";
+	OutputFilename << "-day.svg";
+	OutputPath = SVGDirectory / OutputFilename.str();
+	std::vector<TempestObservation> TheValues;
+	ReadMRTGData(TheValues, GraphType::daily);
+	WriteSVG(TheValues, OutputPath, ssTitle, GraphType::daily, SVGFahrenheit, SVGBattery & 0x01, SVGMinMax & 0x01);
+	OutputFilename.str("");
+	OutputFilename << "weatherflow";
+	OutputFilename << "-week.svg";
+	OutputPath = SVGDirectory / OutputFilename.str();
+	ReadMRTGData(TheValues, GraphType::weekly);
+	WriteSVG(TheValues, OutputPath, ssTitle, GraphType::weekly, SVGFahrenheit, SVGBattery & 0x02, SVGMinMax & 0x02);
+	OutputFilename.str("");
+	OutputFilename << "weatherflow";
+	OutputFilename << "-month.svg";
+	OutputPath = SVGDirectory / OutputFilename.str();
+	ReadMRTGData(TheValues, GraphType::monthly);
+	WriteSVG(TheValues, OutputPath, ssTitle, GraphType::monthly, SVGFahrenheit, SVGBattery & 0x04, SVGMinMax & 0x04);
+	OutputFilename.str("");
+	OutputFilename << "-year.svg";
+	OutputPath = SVGDirectory / OutputFilename.str();
+	ReadMRTGData(TheValues, GraphType::yearly);
+	WriteSVG(TheValues, OutputPath, ssTitle, GraphType::yearly, SVGFahrenheit, SVGBattery & 0x08, SVGMinMax & 0x08);
+}
 /////////////////////////////////////////////////////////////////////////////
 volatile bool bRun = true; // This is declared volatile so that the compiler won't optimized it out of loops later in the code
 void SignalHandlerSIGINT(int signal)
@@ -626,6 +1060,17 @@ int main(int argc, char** argv)
 		std::cerr << ProgramVersionString << " (starting)" << std::endl;
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	tzset();
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	if (!SVGDirectory.empty())
+	{
+		if (SVGTitleMapFilename.empty()) // If this wasn't set as a parameter, look in the SVG Directory for a default titlemap
+			SVGTitleMapFilename = std::filesystem::path(SVGDirectory / "gvh-titlemap.txt");
+		//ReadTitleMap(SVGTitleMapFilename);
+		ReadCacheDirectory(); // if cache directory is configured, read it before reading all the normal logs
+		ReadLoggedData(); // only read the logged data if creating SVG files
+		//GenerateCacheFile(GoveeMRTGLogs); // update cache files if any new data was in logs
+		WriteAllSVG();
+	}
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	auto previousHandlerSIGINT = std::signal(SIGINT, SignalHandlerSIGINT);	// Install CTR-C signal handler
 	auto previousHandlerSIGHUP = std::signal(SIGHUP, SignalHandlerSIGHUP);	// Install Hangup signal handler
