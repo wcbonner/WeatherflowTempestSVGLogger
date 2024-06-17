@@ -611,7 +611,7 @@ void WriteTemperatureSVG(std::vector<TempestObservation>& TheValues, const std::
 				else
 					std::cerr << "Writing: " << SVGFileName.string() << " With Title: " << Title << std::endl;
 				std::ostringstream tempOString;
-				tempOString << "Temperature (" << std::fixed << std::setprecision(1) << TheValues[0].GetTemperature(Fahrenheit) << (Fahrenheit ? "°F)" : "°C)");
+				tempOString << "Temperature (" << std::fixed << std::setprecision(1) << TheValues[0].GetTemperature(Fahrenheit) << (Fahrenheit ? "Â°F)" : "Â°C)");
 				std::string YLegendTemperature(tempOString.str());
 				tempOString = std::ostringstream();
 				tempOString << "Humidity (" << std::fixed << std::setprecision(1) << TheValues[0].GetHumidity() << "%)";
@@ -1335,7 +1335,7 @@ int main(int argc, char** argv)
 		fd_set check_set;
 		FD_ZERO(&check_set);
 		FD_SET(UDPSocket, &check_set);
-		// This will block until either a read is ready (i.e. won’t return EWOULDBLOCK) -1 on error, 0 on timeout, otherwise number of FDs changed
+		// This will block until either a read is ready (i.e. wonÂ’t return EWOULDBLOCK) -1 on error, 0 on timeout, otherwise number of FDs changed
 		if (0 < select(UDPSocket + 1, &check_set, NULL, NULL, &select_timeout))	// returns number of handles ready to read. 0 or negative indicate other than good data to read.
 		{
 			// We got data ready to read, check and make sure it's the right descriptor, just as a sanity check (it shouldn't be possible ot get anything else)
