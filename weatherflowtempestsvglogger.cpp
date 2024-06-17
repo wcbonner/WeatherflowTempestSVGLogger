@@ -32,12 +32,12 @@ int ConsoleVerbosity(1);
 std::filesystem::path LogDirectory;	// If this remains empty, log Files are not created.
 std::filesystem::path CacheDirectory;	// If this remains empty, cache Files are not used. Cache Files should greatly speed up startup of the program if logged data runs multiple years over many devices.
 std::filesystem::path SVGDirectory;	// If this remains empty, SVG Files are not created. If it's specified, _day, _week, _month, and _year.svg files are created for each bluetooth address seen.
-int LogFileTime(300);	// Time between log file writes, to reduce frequency of writing to SD Card
+int LogFileTime(60);	// Time between log file writes, to reduce frequency of writing to SD Card
 int SVGBattery(0); // 0x01 = Draw Battery line on daily, 0x02 = Draw Battery line on weekly, 0x04 = Draw Battery line on monthly, 0x08 = Draw Battery line on yearly
 int SVGMinMax(0); // 0x01 = Draw Temperature and Humiditiy Minimum and Maximum line on daily, 0x02 = on weekly, 0x04 = on monthly, 0x08 = on yearly
 bool SVGFahrenheit(true);
-std::filesystem::path SVGTitleMapFilename;
-std::filesystem::path SVGIndexFilename;
+//std::filesystem::path SVGTitleMapFilename;
+//std::filesystem::path SVGIndexFilename;
 // The following details were taken from https://github.com/oetiker/mrtg
 const size_t DAY_COUNT(600);			/* 400 samples is 33.33 hours */
 const size_t WEEK_COUNT(600);			/* 400 samples is 8.33 days */
@@ -51,23 +51,18 @@ const size_t YEAR_SAMPLE(24 * 60 * 60);	/* Sample every 24 hours */
 class  TempestObservation {
 public:
 	time_t Time;
-	//std::string WriteTXT(const char seperator = '\t') const;
 	std::string WriteCache(void) const;
 	bool ReadCache(const std::string& data);
-	//bool ReadMSG(const uint8_t* const data);
-	TempestObservation() : Time(0), Temperature(0), TemperatureMin(DBL_MAX), TemperatureMax(-DBL_MAX), Humidity(0), HumidityMin(DBL_MAX), HumidityMax(-DBL_MAX), Battery(INT_MAX), Averages(0) { };
-	TempestObservation(const time_t tim, const double tem, const double hum, const int bat)
-	{
-		Time = tim;
-		Temperature = tem;
-		TemperatureMin = tem;
-		TemperatureMax = tem;
-		Humidity = hum;
-		HumidityMin = hum;
-		HumidityMax = hum;
-		Battery = bat;
-		Averages = 1;
-	};
+	TempestObservation() : 
+		Time(0), 
+		Temperature(0), 
+		TemperatureMin(DBL_MAX), 
+		TemperatureMax(-DBL_MAX), 
+		Humidity(0), 
+		HumidityMin(DBL_MAX), 
+		HumidityMax(-DBL_MAX), 
+		Battery(INT_MAX), 
+		Averages(0) { };
 	TempestObservation(const std::string& data);
 	double GetTemperature(const bool Fahrenheit = false) const { if (Fahrenheit) return((Temperature * 9.0 / 5.0) + 32.0); return(Temperature); };
 	double GetTemperatureMin(const bool Fahrenheit = false) const { if (Fahrenheit) return(std::min(((Temperature * 9.0 / 5.0) + 32.0), ((TemperatureMin * 9.0 / 5.0) + 32.0))); return(std::min(Temperature, TemperatureMin)); };
@@ -77,9 +72,6 @@ public:
 	double GetHumidityMin(void) const { return(std::min(Humidity, HumidityMin)); };
 	double GetHumidityMax(void) const { return(std::max(Humidity, HumidityMax)); };
 	int GetBattery(void) const { return(Battery); };
-	//ThermometerType GetModel(void) const { return(Model); };
-	//ThermometerType SetModel(const std::string& Name);
-	//ThermometerType SetModel(const unsigned short* UUID);
 	enum granularity { day, week, month, year };
 	void NormalizeTime(granularity type);
 	granularity GetTimeGranularity(void) const;
@@ -148,7 +140,7 @@ TempestObservation::TempestObservation(const std::string& JSonData)
 				auto lightning_strike_average_distance = observation[0][14].asInt();
 				auto lightning_strike_count = observation[0][15].asInt();
 				Battery = observation[0][16].asDouble();
-				ReportingInterval = observation[0][17].asInt();
+				Averages = ReportingInterval = observation[0][17].asInt();
 			}
 	}
 }
@@ -590,15 +582,15 @@ void ReadMRTGData(std::vector<TempestObservation>& TheValues, const GraphType gr
 }
 void WriteSVG(std::vector<TempestObservation>& TheValues, const std::filesystem::path& SVGFileName, const std::string& Title = "", const GraphType graph = GraphType::daily, const bool Fahrenheit = true, const bool DrawBattery = false, const bool MinMax = false)
 {
-	// By declaring these items here, I'm then basing all my other dimensions on these
-	const int SVGWidth(500);
-	const int SVGHeight(135);
-	const int FontSize(12);
-	const int TickSize(2);
-	int GraphWidth = SVGWidth - (FontSize * 5);
-	const bool DrawHumidity = TheValues[0].GetHumidity() != 0; // HACK: I should really check the entire data set
 	if (!TheValues.empty())
 	{
+		// By declaring these items here, I'm then basing all my other dimensions on these
+		const int SVGWidth(500);
+		const int SVGHeight(135);
+		const int FontSize(12);
+		const int TickSize(2);
+		int GraphWidth = SVGWidth - (FontSize * 5);
+		const bool DrawHumidity = TheValues[0].GetHumidity() != 0; // HACK: I should really check the entire data set
 		struct stat64 SVGStat({ 0 });	// Zero the stat64 structure on allocation
 		if (-1 == stat64(SVGFileName.c_str(), &SVGStat))
 			if (ConsoleVerbosity > 3)
@@ -1052,7 +1044,7 @@ int main(int argc, char** argv)
 			std::cout << "[                   ]  battery: " << SVGBattery << std::endl;
 			std::cout << "[                   ]   minmax: " << SVGMinMax << std::endl;
 			std::cout << "[                   ]  celsius: " << std::boolalpha << !SVGFahrenheit << std::endl;
-			std::cout << "[                   ] titlemap: " << SVGTitleMapFilename << std::endl;
+			//std::cout << "[                   ] titlemap: " << SVGTitleMapFilename << std::endl;
 			std::cout << "[                   ]     time: " << LogFileTime << std::endl;
 		}
 	}
@@ -1063,8 +1055,8 @@ int main(int argc, char** argv)
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	if (!SVGDirectory.empty())
 	{
-		if (SVGTitleMapFilename.empty()) // If this wasn't set as a parameter, look in the SVG Directory for a default titlemap
-			SVGTitleMapFilename = std::filesystem::path(SVGDirectory / "gvh-titlemap.txt");
+		//if (SVGTitleMapFilename.empty()) // If this wasn't set as a parameter, look in the SVG Directory for a default titlemap
+		//	SVGTitleMapFilename = std::filesystem::path(SVGDirectory / "gvh-titlemap.txt");
 		//ReadTitleMap(SVGTitleMapFilename);
 		ReadCacheDirectory(); // if cache directory is configured, read it before reading all the normal logs
 		ReadLoggedData(); // only read the logged data if creating SVG files
