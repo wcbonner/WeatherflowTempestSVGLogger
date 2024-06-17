@@ -1322,7 +1322,7 @@ int main(int argc, char** argv)
 	int broadcast = 1;
 	setsockopt(UDPSocket, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast);
 	::bind(UDPSocket, (sockaddr*)&si_me, sizeof(sockaddr));
-	time_t TimeStart(0);
+	time_t TimeStart(0), TimeSVG(0);
 	time(&TimeStart);
 	while (bRun)
 	{
@@ -1402,6 +1402,13 @@ int main(int argc, char** argv)
 		}
 		time_t TimeNow;
 		time(&TimeNow);
+		if ((!SVGDirectory.empty()) && (difftime(TimeNow, TimeSVG) > DAY_SAMPLE))
+		{
+			if (ConsoleVerbosity > 0)
+				std::cout << "[" << getTimeISO8601() << "] " << std::dec << DAY_SAMPLE << " seconds or more have passed. Writing SVG Files" << std::endl;
+			TimeSVG = (TimeNow / DAY_SAMPLE) * DAY_SAMPLE; // hack to try to line up TimeSVG to be on a five minute period
+			WriteAllSVG();
+		}
 		if (difftime(TimeNow, TimeStart) > LogFileTime)
 		{
 			if (ConsoleVerbosity > 0)

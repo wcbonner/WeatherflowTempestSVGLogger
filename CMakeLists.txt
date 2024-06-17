@@ -8,7 +8,7 @@ endif()
 
 project (
 	WeatherflowTempestSVGLogger
-	VERSION 1.20240617.1
+	VERSION 1.20240617.2
 	DESCRIPTION "Listen and log Weatherflow Tempest Weather Station UDP Packets"
 	HOMEPAGE_URL https://github.com/wcbonner/WeatherflowTempestSVGLogger
 	)
