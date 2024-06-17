@@ -10,7 +10,7 @@
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
-#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/json.h> // sudo apt install libjsoncpp-dev
 #include <queue>
 #include <regex>
 #include <sys/stat.h>
