@@ -226,6 +226,9 @@ TempestObservation& TempestObservation::operator +=(const TempestObservation& b)
 		Humidity = ((Humidity * Averages) + (b.Humidity * b.Averages)) / (Averages + b.Averages);
 		HumidityMin = std::min(std::min(Humidity, HumidityMin), b.HumidityMin);
 		HumidityMax = std::max(std::max(Humidity, HumidityMax), b.HumidityMax);
+		WindSpeed = ((WindSpeed * Averages) + (b.WindSpeed * b.Averages)) / (Averages + b.Averages);
+		WindSpeedMin = std::min(std::min(WindSpeed, WindSpeedMin), b.WindSpeedMin);
+		WindSpeedMax = std::max(std::max(WindSpeed, WindSpeedMax), b.WindSpeedMax);
 		Battery = std::min(Battery, b.Battery);
 		Averages += b.Averages; // existing average + new average
 	}
@@ -439,12 +442,8 @@ void ReadLoggedData(const std::filesystem::path& filename)
 			std::vector<std::string> SortableFile;
 			std::string TheLine;
 			while (std::getline(TheFile, TheLine))
-				SortableFile.push_back(TheLine);
-			TheFile.close();
-			sort(SortableFile.begin(), SortableFile.end());
-			for (auto iter = SortableFile.begin(); iter != SortableFile.end(); iter++)
 			{
-				TempestObservation TheValue(*iter);
+				TempestObservation TheValue(TheLine);
 				if (TheValue.IsValid())
 					UpdateMRTGData(TheValue);
 			}
@@ -586,6 +585,7 @@ void ReadMRTGData(std::vector<TempestObservation>& TheValues, const GraphType gr
 		}
 	}
 }
+/////////////////////////////////////////////////////////////////////////////
 void WriteTemperatureSVG(std::vector<TempestObservation>& TheValues, const std::filesystem::path& SVGFileName, const std::string& Title = "", const GraphType graph = GraphType::daily, const bool Fahrenheit = true, const bool DrawBattery = false, const bool MinMax = false)
 {
 	if (!TheValues.empty())
@@ -1129,6 +1129,7 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 		}
 	}
 }
+/////////////////////////////////////////////////////////////////////////////
 void WriteAllSVG()
 {
 	std::string ssTitle("Tempest");
