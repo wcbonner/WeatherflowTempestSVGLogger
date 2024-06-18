@@ -229,6 +229,9 @@ TempestObservation& TempestObservation::operator +=(const TempestObservation& b)
 		WindSpeed = ((WindSpeed * Averages) + (b.WindSpeed * b.Averages)) / (Averages + b.Averages);
 		WindSpeedMin = std::min(std::min(WindSpeed, WindSpeedMin), b.WindSpeedMin);
 		WindSpeedMax = std::max(std::max(WindSpeed, WindSpeedMax), b.WindSpeedMax);
+		OutsidePressure = ((OutsidePressure * Averages) + (b.OutsidePressure * b.Averages)) / (Averages + b.Averages);
+		OutsidePressureMin = std::min(std::min(OutsidePressure, OutsidePressureMin), b.OutsidePressureMin);
+		OutsidePressureMax = std::max(std::max(OutsidePressure, OutsidePressureMax), b.OutsidePressureMax);
 		Battery = std::min(Battery, b.Battery);
 		Averages += b.Averages; // existing average + new average
 	}
