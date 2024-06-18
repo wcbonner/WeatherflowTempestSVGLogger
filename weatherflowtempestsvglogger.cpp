@@ -1393,9 +1393,12 @@ int main(int argc, char** argv)
 					else if (!msgtype.compare("obs_st"))
 					{
 						TempestObservation observation(JSonData);
-						if (observation.Time != 0)
+						if (observation.IsValid())
+						{
 							if (ConsoleVerbosity > 1)
 								std::cout << "[" << timeToISO8601(observation.Time) << "] observation read properly: " << JSonData << std::endl;
+							UpdateMRTGData(observation);
+						}
 					}
 				}
 			}
