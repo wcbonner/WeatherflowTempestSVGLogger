@@ -1,84 +1,83 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="135">
-	<!-- Created by: WeatherFlowTempestLogger Version 1.20240618.1 Built on: Jun 18 2024 at 07:05:16 -->
+	<!-- Created by: WeatherFlowTempestLogger Version 1.20240618.2 Built on: Jun 18 2024 at 07:41:14 -->
 	<clipPath id="GraphRegion"><polygon points="70,14 486,14 486,121 70,121" /></clipPath>
 	<style>
 		text { font-family: sans-serif; font-size: 12px; fill: black; }
 		line { stroke: black; }
 		polygon { fill-opacity: 0.5; }
-		.barometer-label { font-family: Georgia, serif; font-style: italic; font-size: 587px; opacity: 0.5; clip-path: url(#GraphRegion); text-anchor: middle; dominant-baseline: middle; }
+		.barometer-label { font-family: Georgia, serif; font-style: italic; font-size: 287px; opacity: 0.5; clip-path: url(#GraphRegion); text-anchor: middle; dominant-baseline: middle; }
 	</style>
 	<rect style="fill-opacity:0;stroke:grey;stroke-width:2" width="500" height="135" />
-	<text x="70" y="12">Tempest</text>
-	<text style="text-anchor:end" x="486" y="12">2024-06-18 07:34:47</text>
-	<text style="fill:blue;text-anchor:middle" x="12" y="50%" transform="rotate(270 12,67)">Wind Speed (0.5 kn)</text>
-	<text style="fill:blue;text-anchor:middle" x="24" y="50%" transform="rotate(270 24,67)">Wind Gust (1.7 kn)</text>
-	<text style="fill:green;text-anchor:middle" x="36" y="50%" transform="rotate(270 36,67)">Pressure (1019.8 hPa)</text>
+	<text x="70" y="12">Tempest Wind</text>
+	<text style="text-anchor:end" x="486" y="12">2024-06-18 23:04:37</text>
+	<text style="fill:blue;text-anchor:middle" x="12" y="50%" transform="rotate(270 12,67)">Wind Speed (2.1 kn)</text>
+	<text style="fill:blue;text-anchor:middle" x="24" y="50%" transform="rotate(270 24,67)">Wind Gust (3.4 kn)</text>
+	<text style="fill:green;text-anchor:middle" x="36" y="50%" transform="rotate(270 36,67)">Pressure (1017.2 hPa)</text>
 	<line x1="68" y1="14" x2="488" y2="14"/>
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="14">2.4</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="14">3.4</text>
 	<line style="stroke-dasharray:1" x1="68" y1="40" x2="488" y2="40" />
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="40">1.8</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="40">2.6</text>
 	<line style="stroke-dasharray:1" x1="68" y1="66" x2="488" y2="66" />
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="66">1.2</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="66">1.7</text>
 	<line style="stroke-dasharray:1" x1="68" y1="92" x2="488" y2="92" />
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="92">0.7</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="92">0.9</text>
 	<line x1="68" y1="121" x2="488" y2="121"/>
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="121">0.1</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="68" y="121">0.0</text>
 	<line x1="70" y1="14" x2="70" y2="121"/>
-	<line style="stroke-dasharray:1" x1="76" y1="14" x2="76" y2="123" />
-	<line style="stroke-dasharray:1" x1="88" y1="14" x2="88" y2="123" />
-	<text style="text-anchor:middle" x="88" y="133">6</text>
-	<line style="stroke-dasharray:1" x1="100" y1="14" x2="100" y2="123" />
-	<line style="stroke-dasharray:1" x1="112" y1="14" x2="112" y2="123" />
-	<text style="text-anchor:middle" x="112" y="133">4</text>
-	<line style="stroke-dasharray:1" x1="124" y1="14" x2="124" y2="123" />
-	<line style="stroke-dasharray:1" x1="136" y1="14" x2="136" y2="123" />
-	<text style="text-anchor:middle" x="136" y="133">2</text>
-	<line style="stroke-dasharray:1" x1="148" y1="14" x2="148" y2="123" />
-	<line style="stroke:red" x1="160" y1="14" x2="160" y2="123" />
-	<text style="text-anchor:middle" x="160" y="133">0</text>
-	<line style="stroke-dasharray:1" x1="172" y1="14" x2="172" y2="123" />
-	<line style="stroke-dasharray:1" x1="184" y1="14" x2="184" y2="123" />
-	<text style="text-anchor:middle" x="184" y="133">22</text>
-	<line style="stroke-dasharray:1" x1="196" y1="14" x2="196" y2="123" />
-	<line style="stroke-dasharray:1" x1="208" y1="14" x2="208" y2="123" />
-	<text style="text-anchor:middle" x="208" y="133">20</text>
-	<line style="stroke-dasharray:1" x1="220" y1="14" x2="220" y2="123" />
-	<line style="stroke-dasharray:1" x1="232" y1="14" x2="232" y2="123" />
-	<text style="text-anchor:middle" x="232" y="133">18</text>
-	<line style="stroke-dasharray:1" x1="244" y1="14" x2="244" y2="123" />
-	<line style="stroke-dasharray:1" x1="256" y1="14" x2="256" y2="123" />
-	<text style="text-anchor:middle" x="256" y="133">16</text>
-	<line style="stroke-dasharray:1" x1="268" y1="14" x2="268" y2="123" />
-	<line style="stroke-dasharray:1" x1="280" y1="14" x2="280" y2="123" />
-	<text style="text-anchor:middle" x="280" y="133">14</text>
-	<line style="stroke-dasharray:1" x1="292" y1="14" x2="292" y2="123" />
-	<line style="stroke-dasharray:1" x1="304" y1="14" x2="304" y2="123" />
-	<text style="text-anchor:middle" x="304" y="133">12</text>
-	<line style="stroke-dasharray:1" x1="316" y1="14" x2="316" y2="123" />
-	<line style="stroke-dasharray:1" x1="328" y1="14" x2="328" y2="123" />
-	<text style="text-anchor:middle" x="328" y="133">10</text>
-	<line style="stroke-dasharray:1" x1="340" y1="14" x2="340" y2="123" />
-	<line style="stroke-dasharray:1" x1="352" y1="14" x2="352" y2="123" />
-	<text style="text-anchor:middle" x="352" y="133">8</text>
-	<line style="stroke-dasharray:1" x1="364" y1="14" x2="364" y2="123" />
-	<line style="stroke-dasharray:1" x1="376" y1="14" x2="376" y2="123" />
-	<text style="text-anchor:middle" x="376" y="133">6</text>
-	<line style="stroke-dasharray:1" x1="388" y1="14" x2="388" y2="123" />
-	<line style="stroke-dasharray:1" x1="400" y1="14" x2="400" y2="123" />
-	<text style="text-anchor:middle" x="400" y="133">4</text>
-	<line style="stroke-dasharray:1" x1="412" y1="14" x2="412" y2="123" />
-	<line style="stroke-dasharray:1" x1="424" y1="14" x2="424" y2="123" />
-	<text style="text-anchor:middle" x="424" y="133">2</text>
-	<line style="stroke-dasharray:1" x1="436" y1="14" x2="436" y2="123" />
-	<line style="stroke:red" x1="448" y1="14" x2="448" y2="123" />
-	<text style="text-anchor:middle" x="448" y="133">0</text>
-	<line style="stroke-dasharray:1" x1="460" y1="14" x2="460" y2="123" />
-	<line style="stroke-dasharray:1" x1="472" y1="14" x2="472" y2="123" />
-	<text style="text-anchor:middle" x="472" y="133">22</text>
-	<line style="stroke-dasharray:1" x1="484" y1="14" x2="484" y2="123" />
+	<line style="stroke-dasharray:1" x1="82" y1="14" x2="82" y2="123" />
+	<text style="text-anchor:middle" x="82" y="133">22</text>
+	<line style="stroke-dasharray:1" x1="94" y1="14" x2="94" y2="123" />
+	<line style="stroke-dasharray:1" x1="106" y1="14" x2="106" y2="123" />
+	<text style="text-anchor:middle" x="106" y="133">20</text>
+	<line style="stroke-dasharray:1" x1="118" y1="14" x2="118" y2="123" />
+	<line style="stroke-dasharray:1" x1="130" y1="14" x2="130" y2="123" />
+	<text style="text-anchor:middle" x="130" y="133">18</text>
+	<line style="stroke-dasharray:1" x1="142" y1="14" x2="142" y2="123" />
+	<line style="stroke-dasharray:1" x1="154" y1="14" x2="154" y2="123" />
+	<text style="text-anchor:middle" x="154" y="133">16</text>
+	<line style="stroke-dasharray:1" x1="166" y1="14" x2="166" y2="123" />
+	<line style="stroke-dasharray:1" x1="178" y1="14" x2="178" y2="123" />
+	<text style="text-anchor:middle" x="178" y="133">14</text>
+	<line style="stroke-dasharray:1" x1="190" y1="14" x2="190" y2="123" />
+	<line style="stroke-dasharray:1" x1="202" y1="14" x2="202" y2="123" />
+	<text style="text-anchor:middle" x="202" y="133">12</text>
+	<line style="stroke-dasharray:1" x1="214" y1="14" x2="214" y2="123" />
+	<line style="stroke-dasharray:1" x1="226" y1="14" x2="226" y2="123" />
+	<text style="text-anchor:middle" x="226" y="133">10</text>
+	<line style="stroke-dasharray:1" x1="238" y1="14" x2="238" y2="123" />
+	<line style="stroke-dasharray:1" x1="250" y1="14" x2="250" y2="123" />
+	<text style="text-anchor:middle" x="250" y="133">8</text>
+	<line style="stroke-dasharray:1" x1="262" y1="14" x2="262" y2="123" />
+	<line style="stroke-dasharray:1" x1="274" y1="14" x2="274" y2="123" />
+	<text style="text-anchor:middle" x="274" y="133">6</text>
+	<line style="stroke-dasharray:1" x1="286" y1="14" x2="286" y2="123" />
+	<line style="stroke-dasharray:1" x1="298" y1="14" x2="298" y2="123" />
+	<text style="text-anchor:middle" x="298" y="133">4</text>
+	<line style="stroke-dasharray:1" x1="310" y1="14" x2="310" y2="123" />
+	<line style="stroke-dasharray:1" x1="322" y1="14" x2="322" y2="123" />
+	<text style="text-anchor:middle" x="322" y="133">2</text>
+	<line style="stroke-dasharray:1" x1="334" y1="14" x2="334" y2="123" />
+	<line style="stroke:red" x1="346" y1="14" x2="346" y2="123" />
+	<text style="text-anchor:middle" x="346" y="133">0</text>
+	<line style="stroke-dasharray:1" x1="358" y1="14" x2="358" y2="123" />
+	<line style="stroke-dasharray:1" x1="370" y1="14" x2="370" y2="123" />
+	<text style="text-anchor:middle" x="370" y="133">22</text>
+	<line style="stroke-dasharray:1" x1="382" y1="14" x2="382" y2="123" />
+	<line style="stroke-dasharray:1" x1="394" y1="14" x2="394" y2="123" />
+	<text style="text-anchor:middle" x="394" y="133">20</text>
+	<line style="stroke-dasharray:1" x1="406" y1="14" x2="406" y2="123" />
+	<line style="stroke-dasharray:1" x1="418" y1="14" x2="418" y2="123" />
+	<text style="text-anchor:middle" x="418" y="133">18</text>
+	<line style="stroke-dasharray:1" x1="430" y1="14" x2="430" y2="123" />
+	<line style="stroke-dasharray:1" x1="442" y1="14" x2="442" y2="123" />
+	<text style="text-anchor:middle" x="442" y="133">16</text>
+	<line style="stroke-dasharray:1" x1="454" y1="14" x2="454" y2="123" />
+	<line style="stroke-dasharray:1" x1="466" y1="14" x2="466" y2="123" />
+	<text style="text-anchor:middle" x="466" y="133">14</text>
+	<line style="stroke-dasharray:1" x1="478" y1="14" x2="478" y2="123" />
 	<line x1="486" y1="14" x2="486" y2="121"/>
 	<polygon style="fill:red;stroke:red;fill-opacity:1;" points="67,121 73,118 73,124" />
 	<!-- ApparentWindSpeed -->
-	<polyline style="fill:none;stroke:blue;clip-path:url(#GraphRegion)" points="71,121 72,90 73,89 74,103 75,90 76,93 77,69 78,69 79,80 80,75 81,76 82,82 83,91 84,72 85,91 86,77 87,65 88,72 89,68 90,78 91,73 92,71 93,67 94,74 95,77 96,86 97,77 98,81 99,61 100,65 101,69 102,81 103,62 104,53 105,72 106,69 107,53 108,51 109,63 110,50 111,55 112,54 113,55 114,57 115,61 116,52 117,37 118,34 119,44 120,50 121,40 122,28 123,23 124,38 125,63 126,69 127,66 128,60 129,59 130,46 131,49 132,59 133,61 134,56 135,51 136,75 137,54 138,60 139,57 140,59 141,60 142,62 143,62 144,72 145,68 146,67 147,81 148,42 149,55 150,60 151,58 152,64 153,73 154,63 155,65 156,93 157,78 158,90 159,88 160,94 161,80 162,80 163,45 164,65 165,84 166,73 167,76 168,74 169,97 170,92 171,83 172,77 173,92 174,78 175,72 176,80 177,103 178,95 179,89 180,107 181,104 182,94 183,97 184,95 185,99 186,84 187,82 188,96 189,98 190,91 191,96 192,102 193,81 194,89 195,87 196,98 197,91 198,83 199,103 200,87 201,108 202,91 203,105 204,86 205,107 206,111 207,103 208,112 209,104 210,99 211,109 212,101 213,99 214,113 215,109 216,105 217,115 218,97 219,101 220,95 221,87 222,82 223,70 224,106 225,103 226,99 227,104 228,93 229,117 230,111 231,104 232,90 233,87 234,87 235,79 236,85 237,63 238,57 239,63 240,59 241,65 242,62 243,49 244,59 245,42 246,51 247,57 248,62 249,61 250,52 251,50 252,64 253,41 254,41 255,34 256,33 257,23 258,35 259,24 260,35 261,43 262,21 263,25 264,14 265,22 266,24 267,26 268,48 269,48 270,42 271,48 272,56 273,55 274,75 275,73 276,62 277,49 278,57 279,65 280,61 281,86 282,86 283,86 284,86 285,86 286,86 287,86 288,86 289,86 290,86 291,86 292,86 293,86 294,86 295,86 296,86 297,86 298,86 299,86 300,86 301,86 302,86 303,86 304,86 305,86 306,86 307,86 308,86 309,86 310,86 311,86 312,86 313,86 314,86 315,86 316,86 317,86 318,86 319,86 320,86 321,86 322,86 323,86 324,86 325,86 326,86 327,86 328,86 329,86 330,86 331,86 332,86 333,86 334,86 335,86 336,86 337,86 338,86 339,86 340,86 341,86 342,86 343,86 344,86 345,86 346,86 347,86 348,86 349,86 350,86 351,86 352,86 353,86 354,86 355,86 356,86 357,86 358,86 359,86 360,86 361,86 362,86 363,86 364,86 365,86 366,86 367,86 368,86 369,86 370,86 371,86 372,86 373,86 374,86 375,86 376,86 377,86 378,86 379,86 380,86 381,86 382,86 383,86 384,86 385,86 386,86 387,86 388,86 389,86 390,86 391,86 392,86 393,86 394,86 395,86 396,86 397,86 398,86 399,86 400,86 401,86 402,86 403,86 404,86 405,86 406,86 407,86 408,86 409,86 410,86 411,86 412,86 413,86 414,86 415,86 416,86 417,86 418,86 419,86 420,86 421,86 422,86 423,86 424,86 425,86 426,86 427,86 428,86 429,86 430,86 431,86 432,86 433,86 434,86 435,86 436,86 437,86 438,86 439,86 440,86 441,86 442,86 443,86 444,86 445,86 446,86 447,86 448,86 449,86 450,86 451,86 452,86 453,86 454,86 455,86 456,86 457,86 458,86 459,86 460,86 461,86 462,86 463,86 464,86 465,86 466,86 467,86 468,86 469,86 470,86 471,86 472,86 473,86 474,86 475,86 476,86 477,86 478,86 479,86 480,86 481,86 482,86 483,86 484,86 485,86 " />
+	<polyline style="fill:none;stroke:blue;clip-path:url(#GraphRegion)" points="71,55 72,56 73,44 74,44 75,42 76,36 77,26 78,14 79,29 80,34 81,30 82,34 83,39 84,43 85,36 86,34 87,30 88,52 89,69 90,56 91,63 92,55 93,61 94,52 95,48 96,42 97,46 98,51 99,49 100,51 101,51 102,61 103,76 104,73 105,65 106,62 107,59 108,52 109,53 110,67 111,65 112,60 113,57 114,58 115,55 116,59 117,66 118,61 119,56 120,59 121,52 122,62 123,59 124,50 125,53 126,68 127,59 128,77 129,72 130,67 131,81 132,80 133,74 134,63 135,67 136,75 137,65 138,58 139,66 140,81 141,74 142,74 143,75 144,73 145,71 146,67 147,75 148,60 149,60 150,59 151,58 152,67 153,70 154,75 155,76 156,78 157,73 158,65 159,70 160,75 161,73 162,74 163,79 164,79 165,76 166,84 167,83 168,86 169,87 170,83 171,79 172,76 173,80 174,73 175,67 176,86 177,79 178,82 179,84 180,84 181,76 182,88 183,87 184,85 185,82 186,86 187,84 188,91 189,96 190,97 191,103 192,98 193,102 194,103 195,112 196,110 197,102 198,99 199,109 200,116 201,104 202,101 203,99 204,99 205,100 206,99 207,108 208,100 209,95 210,101 211,92 212,93 213,101 214,96 215,106 216,106 217,101 218,102 219,99 220,94 221,105 222,104 223,102 224,99 225,101 226,99 227,106 228,98 229,93 230,89 231,91 232,88 233,84 234,81 235,83 236,101 237,108 238,92 239,87 240,100 241,84 242,87 243,96 244,109 245,103 246,97 247,108 248,106 249,111 250,108 251,106 252,103 253,110 254,121 255,115 256,104 257,119 258,98 259,97 260,107 261,98 262,100 263,84 264,83 265,91 266,88 267,88 268,93 269,98 270,86 271,99 272,89 273,81 274,85 275,83 276,90 277,87 278,85 279,82 280,87 281,89 282,95 283,89 284,92 285,78 286,81 287,83 288,92 289,79 290,73 291,86 292,84 293,72 294,71 295,80 296,71 297,74 298,73 299,74 300,76 301,78 302,72 303,62 304,60 305,67 306,70 307,64 308,56 309,52 310,63 311,80 312,84 313,82 314,77 315,77 316,68 317,70 318,77 319,79 320,74 321,72 322,88 323,74 324,77 325,76 326,77 327,78 328,79 329,79 330,86 331,83 332,82 333,92 334,65 335,74 336,78 337,76 338,80 339,86 340,80 341,81 342,100 343,90 344,98 345,97 346,101 347,91 348,91 349,67 350,81 351,94 352,86 353,88 354,87 355,103 356,99 357,93 358,89 359,99 360,90 361,86 362,91 363,107 364,101 365,97 366,110 367,108 368,101 369,102 370,101 371,104 372,94 373,92 374,102 375,103 376,98 377,102 378,106 379,92 380,97 381,96 382,104 383,99 384,93 385,107 386,96 387,110 388,98 389,108 390,95 391,110 392,112 393,107 394,113 395,108 396,104 397,111 398,106 399,104 400,113 401,111 402,108 403,115 404,103 405,105 406,101 407,96 408,93 409,85 410,109 411,107 412,104 413,107 414,100 415,116 416,112 417,108 418,98 419,96 420,96 421,90 422,94 423,80 424,75 425,80 426,77 427,81 428,79 429,70 430,77 431,65 432,72 433,76 434,79 435,78 436,72 437,70 438,81 439,64 440,64 441,60 442,59 443,52 444,61 445,53 446,61 447,66 448,51 449,54 450,46 451,52 452,53 453,54 454,70 455,69 456,65 457,69 458,75 459,74 460,88 461,87 462,79 463,70 464,76 465,81 466,78 467,95 468,95 469,95 470,95 471,95 472,95 473,95 474,95 475,95 476,95 477,95 478,95 479,95 480,95 481,95 482,95 483,95 484,95 485,95 " />
 </svg>

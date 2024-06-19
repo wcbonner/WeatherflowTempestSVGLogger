@@ -124,30 +124,34 @@ TempestObservation::TempestObservation(const std::string& JSonData)
 	}
 	else
 	{
-		const Json::Value observation = root["obs"];
-		if (observation.size() == 1)
-			if (observation[0].size() == 18)
-			{
-				//	{"serial_number":"ST-00145757","type":"obs_st","hub_sn":"HB-00147479","obs":[[1718217086,1.58,2.25,3.22,340,3,1025.33,14.58,60.34,138057,10.17,1150,0.000000,0,0,0,2.805,1]],"firmware_revision":176}
-				Time = observation[0][0].asLargestInt();
-				WindSpeedMin = observation[0][1].asDouble();
-				WindSpeed = observation[0][2].asDouble();
-				WindSpeedMax = observation[0][3].asDouble();
-				WindDirection = observation[0][4].asInt();
-				WindInterval = observation[0][5].asInt();
-				OutsidePressure = OutsidePressureMin = OutsidePressureMax = observation[0][6].asDouble();
-				Temperature = TemperatureMin = TemperatureMax = observation[0][7].asDouble();
-				Humidity = HumidityMin = HumidityMax = observation[0][8].asDouble();
-				auto illuminance = observation[0][9].asInt();
-				auto UV = observation[0][10].asDouble();
-				auto solar_radiation = observation[0][11].asInt();
-				auto rain_accumulation_over_the_previous_minute = observation[0][12].asDouble();
-				auto precipitation_type = observation[0][13].asInt();
-				auto lightning_strike_average_distance = observation[0][14].asInt();
-				auto lightning_strike_count = observation[0][15].asInt();
-				Battery = observation[0][16].asDouble();
-				Averages = ReportingInterval = observation[0][17].asInt();
-			}
+		const std::string msgtype = root["type"].asString();
+		if (!msgtype.compare("obs_st"))
+		{
+			const Json::Value observation = root["obs"];
+			if (observation.size() == 1)
+				if (observation[0].size() == 18)
+				{
+					//	{"serial_number":"ST-00145757","type":"obs_st","hub_sn":"HB-00147479","obs":[[1718217086,1.58,2.25,3.22,340,3,1025.33,14.58,60.34,138057,10.17,1150,0.000000,0,0,0,2.805,1]],"firmware_revision":176}
+					Time = observation[0][0].asLargestInt();
+					WindSpeedMin = observation[0][1].asDouble();
+					WindSpeed = observation[0][2].asDouble();
+					WindSpeedMax = observation[0][3].asDouble();
+					WindDirection = observation[0][4].asInt();
+					WindInterval = observation[0][5].asInt();
+					OutsidePressure = OutsidePressureMin = OutsidePressureMax = observation[0][6].asDouble();
+					Temperature = TemperatureMin = TemperatureMax = observation[0][7].asDouble();
+					Humidity = HumidityMin = HumidityMax = observation[0][8].asDouble();
+					auto illuminance = observation[0][9].asInt();
+					auto UV = observation[0][10].asDouble();
+					auto solar_radiation = observation[0][11].asInt();
+					auto rain_accumulation_over_the_previous_minute = observation[0][12].asDouble();
+					auto precipitation_type = observation[0][13].asInt();
+					auto lightning_strike_average_distance = observation[0][14].asInt();
+					auto lightning_strike_count = observation[0][15].asInt();
+					Battery = observation[0][16].asDouble();
+					Averages = ReportingInterval = observation[0][17].asInt();
+				}
+		}
 	}
 }
 std::string TempestObservation::WriteCache(void) const
