@@ -29,7 +29,6 @@ Observation (Tempest) [type = obs_st]
         "firmware_revision": 129
     }
 
-Observation  Value Layout
 | Index | Field                                   | Units                                                        |
 | ----- | --------------------------------------- | ------------------------------------------------------------ |
 | 0     | Time Epoch                              | Seconds                                                      |
@@ -50,3 +49,19 @@ Observation  Value Layout
 | 15    | Lightning Strike Count                  |                                                              |
 | 16    | Battery                                 | Volts                                                        |
 | 17    | Report Interval                         | Minutes                                                      |
+
+Rapid Wind [type = rapid_wind]
+	
+	{
+	  "serial_number": "SK-00008453",
+	  "type":"rapid_wind",
+	  "hub_sn": "HB-00000001",
+	  "ob":[1493322445,2.3,128]
+	}
+
+| Index | Field          | Units   |
+| ----- | -------------- | ------- |
+| 0     | Time Epoch     | Seconds |
+| 1     | Wind Speed     | mps     |
+| 2     | Wind Direction | Degrees |
+

@@ -61,7 +61,16 @@ public:
 		Humidity(0), 
 		HumidityMin(DBL_MAX), 
 		HumidityMax(-DBL_MAX), 
-		Battery(INT_MAX), 
+		WindSpeed(0),
+		WindSpeedMin(DBL_MAX),
+		WindSpeedMax(-DBL_MAX),
+		WindDirection(0),
+		WindInterval(0),
+		OutsidePressure(0),
+		OutsidePressureMin(DBL_MAX),
+		OutsidePressureMax(-DBL_MAX),
+		Battery(DBL_MAX),
+		ReportingInterval(0),
 		Averages(0) { };
 	TempestObservation(const std::string& data);
 	double GetTemperature(const bool Fahrenheit = false) const { if (Fahrenheit) return((Temperature * 9.0 / 5.0) + 32.0); return(Temperature); };
@@ -699,7 +708,7 @@ void WriteTemperatureSVG(std::vector<TempestObservation>& TheValues, const std::
 
 				// Legend Text
 				int LegendIndex = 1;
-				SVGFile << "\t<text x=\"" << GraphLeft << "\" y=\"" << GraphTop - 2 << "\">" << Title << " Temperature</text>" << std::endl;
+				SVGFile << "\t<text x=\"" << GraphLeft << "\" y=\"" << GraphTop - 2 << "\">" << Title << " Temperature &amp; Humidity</text>" << std::endl;
 				SVGFile << "\t<text style=\"text-anchor:end\" x=\"" << GraphRight << "\" y=\"" << GraphTop - 2 << "\">" << timeToExcelLocal(TheValues[0].Time) << "</text>" << std::endl;
 				SVGFile << "\t<text style=\"fill:blue;text-anchor:middle\" x=\"" << FontSize * LegendIndex << "\" y=\"50%\" transform=\"rotate(270 " << FontSize * LegendIndex << "," << (GraphTop + GraphBottom) / 2 << ")\">" << YLegendTemperature << "</text>" << std::endl;
 				if (DrawHumidity)
@@ -991,7 +1000,7 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 
 				// Legend Text
 				int LegendIndex = 1;
-				SVGFile << "\t<text x=\"" << GraphLeft << "\" y=\"" << GraphTop - 2 << "\">" << Title << " Wind</text>" << std::endl;
+				SVGFile << "\t<text x=\"" << GraphLeft << "\" y=\"" << GraphTop - 2 << "\">" << Title << " Wind &amp; Pressure</text>" << std::endl;
 				SVGFile << "\t<text style=\"text-anchor:end\" x=\"" << GraphRight << "\" y=\"" << GraphTop - 2 << "\">" << timeToExcelLocal(TheValues[0].Time) << "</text>" << std::endl;
 				SVGFile << "\t<text style=\"fill:blue;text-anchor:middle\" x=\"" << FontSize * LegendIndex << "\" y=\"50%\" transform=\"rotate(270 " << FontSize * LegendIndex << "," << (GraphTop + GraphBottom) / 2 << ")\">" << YLegendWindSpeed << "</text>" << std::endl;
 				LegendIndex++;
@@ -1143,16 +1152,16 @@ void WriteAllSVG()
 	std::vector<TempestObservation> TheValues;
 	ReadMRTGData(TheValues, GraphType::daily);
 	WriteTemperatureSVG(TheValues, SVGDirectory / "weatherflow-temperature-day.svg", ssTitle, GraphType::daily, SVGFahrenheit, SVGBattery & 0x01, SVGMinMax & 0x01);
-	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-day.svg", ssTitle, GraphType::daily, SVGMinMax & 0x01);
+	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-day.svg", ssTitle, GraphType::daily, true);
 	ReadMRTGData(TheValues, GraphType::weekly);
 	WriteTemperatureSVG(TheValues, SVGDirectory / "weatherflow-temperature-week.svg", ssTitle, GraphType::weekly, SVGFahrenheit, SVGBattery & 0x02, SVGMinMax & 0x02);
-	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-week.svg", ssTitle, GraphType::weekly, SVGMinMax & 0x02);
+	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-week.svg", ssTitle, GraphType::weekly, true);
 	ReadMRTGData(TheValues, GraphType::monthly);
 	WriteTemperatureSVG(TheValues, SVGDirectory / "weatherflow-temperature-month.svg", ssTitle, GraphType::monthly, SVGFahrenheit, SVGBattery & 0x04, SVGMinMax & 0x04);
-	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-month.svg", ssTitle, GraphType::monthly, SVGMinMax & 0x04);
+	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-month.svg", ssTitle, GraphType::monthly, true);
 	ReadMRTGData(TheValues, GraphType::yearly);
 	WriteTemperatureSVG(TheValues, SVGDirectory / "weatherflow-temperature-year.svg", ssTitle, GraphType::yearly, SVGFahrenheit, SVGBattery & 0x08, SVGMinMax & 0x08);
-	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-year.svg", ssTitle, GraphType::yearly, SVGMinMax & 0x08);
+	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-year.svg", ssTitle, GraphType::yearly, true);
 }
 /////////////////////////////////////////////////////////////////////////////
 volatile bool bRun = true; // This is declared volatile so that the compiler won't optimized it out of loops later in the code
@@ -1334,7 +1343,6 @@ int main(int argc, char** argv)
 	time(&TimeStart);
 	while (bRun)
 	{
-		unsigned slen = sizeof(sockaddr);
 		// This select() call coming up will sit and wait until until the socket read would return something that's not EAGAIN/EWOULDBLOCK
 		// But first we need to set a timeout -- we need to do this every time before we call select()
 		struct timeval select_timeout = { 60, 0 };	// 60 second timeout, 0 microseconds
@@ -1355,6 +1363,7 @@ int main(int argc, char** argv)
 
 				char buf[1024];	// msgs are super small
 				struct sockaddr_in si_other;
+				unsigned slen = sizeof(sockaddr);
 				auto bufDataLen = recvfrom(UDPSocket, buf, sizeof(buf), 0, (sockaddr*)&si_other, &slen);
 				//auto bufDataLen = read(s, buf, sizeof(buf));
 				std::string JSonData(buf, 0, bufDataLen);
