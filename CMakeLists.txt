@@ -8,7 +8,7 @@ endif()
 
 project (
 	WeatherflowTempestSVGLogger
-	VERSION 1.20240619.0
+	VERSION 1.20240629.0
 	DESCRIPTION "Listen and log Weatherflow Tempest Weather Station UDP Packets"
 	HOMEPAGE_URL https://github.com/wcbonner/WeatherflowTempestSVGLogger
 	)
@@ -20,7 +20,7 @@ configure_file(
 
 # Add source to this project's executable.
 add_executable (
-	WeatherflowTempestSVGLogger
+	${PROJECT_NAME}
 	weatherflowtempestsvglogger.cpp
 	weatherflowtempestsvglogger-version.h
 	wimiso8601.cpp
@@ -28,28 +28,30 @@ add_executable (
 	)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-	set_property(TARGET WeatherflowTempestSVGLogger PROPERTY CXX_STANDARD 17)
+	set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 endif()
 
 target_include_directories(
-    WeatherflowTempestSVGLogger
+    ${PROJECT_NAME}
     PUBLIC "${PROJECT_BINARY_DIR}" ${EXTRA_INCLUDES}
     )
 
+find_package(jsoncpp REQUIRED)
+
 target_link_libraries(
-	WeatherflowTempestSVGLogger
+	${PROJECT_NAME}
 	-lstdc++fs
-	-ljsoncpp
+	jsoncpp_lib
 	)
 
 include(CTest)
 add_test(
-	NAME WeatherflowTempestSVGLogger 
+	NAME ${PROJECT_NAME}
 	COMMAND WeatherflowTempestSVGLogger --help
 	)
 
 install(
-	TARGETS WeatherflowTempestSVGLogger
+	TARGETS ${PROJECT_NAME}
 	DESTINATION bin
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 	LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
