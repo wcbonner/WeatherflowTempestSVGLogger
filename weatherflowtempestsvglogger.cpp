@@ -142,9 +142,9 @@ TempestObservation::TempestObservation(const std::string& JSonData)
 				{
 					//	{"serial_number":"ST-00145757","type":"obs_st","hub_sn":"HB-00147479","obs":[[1718217086,1.58,2.25,3.22,340,3,1025.33,14.58,60.34,138057,10.17,1150,0.000000,0,0,0,2.805,1]],"firmware_revision":176}
 					Time = observation[0][0].asLargestInt();
-					WindSpeedMin = observation[0][1].asDouble();
-					WindSpeed = observation[0][2].asDouble();
-					WindSpeedMax = observation[0][3].asDouble();
+					WindSpeedMin = observation[0][1].asDouble() * 1.9438445; // data is recorded in m/s and I want it in knots
+					WindSpeed = observation[0][2].asDouble() * 1.9438445; // data is recorded in m/s and I want it in knots
+					WindSpeedMax = observation[0][3].asDouble() * 1.9438445; // data is recorded in m/s and I want it in knots
 					WindDirection = observation[0][4].asInt();
 					WindInterval = observation[0][5].asInt();
 					OutsidePressure = OutsidePressureMin = OutsidePressureMax = observation[0][6].asDouble();
