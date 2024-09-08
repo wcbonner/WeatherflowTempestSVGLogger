@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="135">
-	<!-- Created by: WeatherFlowTempestLogger Version 1.20240618.2 Built on: Jun 18 2024 at 07:41:14 -->
+	<!-- Created by: WeatherFlowTempestLogger Version 1.20240722.0 Built on: Jul 22 2024 at 17:05:23 -->
 	<clipPath id="GraphRegion"><polygon points="54,14 470,14 470,121 54,121" /></clipPath>
 	<style>
 		text { font-family: sans-serif; font-size: 12px; fill: black; }
@@ -8,33 +8,38 @@
 		polygon { fill-opacity: 0.5; }
 	</style>
 	<rect style="fill-opacity:0;stroke:grey;stroke-width:2" width="500" height="135" />
-	<text x="54" y="12">Tempest Temperature</text>
-	<text style="text-anchor:end" x="470" y="12">2024-06-18 00:00:00</text>
-	<text style="fill:blue;text-anchor:middle" x="12" y="50%" transform="rotate(270 12,67)">Temperature (58.3°F)</text>
-	<text style="fill:green;text-anchor:middle" x="24" y="50%" transform="rotate(270 24,67)">Humidity (71.7%)</text>
+	<text x="54" y="12">Tempest Temperature &amp; Humidity</text>
+	<text style="text-anchor:end" x="470" y="12">2024-09-08 00:00:00</text>
+	<text style="fill:blue;text-anchor:middle" x="12" y="50%" transform="rotate(270 12,67)">Temperature (64.8°F)</text>
+	<text style="fill:green;text-anchor:middle" x="24" y="50%" transform="rotate(270 24,67)">Humidity (83.3%)</text>
 	<!-- Humidity Max -->
-	<polygon style="fill:lime;stroke:green;clip-path:url(#GraphRegion)" points="55,120 54,20 55,69 56,69 57,32 58,14 59,31 60,29 61,120" />
+	<polygon style="fill:lime;stroke:green;clip-path:url(#GraphRegion)" points="55,120 54,23 55,14 56,14 57,15 58,25 59,31 60,20 61,17 62,19 63,26 64,21 65,22 66,17 67,25 68,24 69,17 70,21 71,30 72,29 73,21 74,20 75,25 76,35 77,23 78,31 79,35 80,36 81,27 82,24 83,22 84,21 85,22 86,31 87,26 88,21 89,22 90,26 91,26 92,23 93,29 94,25 95,33 96,24 97,31 98,47 99,31 100,42 101,27 102,26 103,37 104,51 105,51 106,51 107,51 108,51 109,51 110,51 111,51 112,51 113,51 114,51 115,51 116,51 117,51 118,51 119,51 120,51 121,51 122,51 123,51 124,51 125,51 126,51 127,51 128,51 129,51 130,51 131,51 132,51 133,51 134,36 135,39 136,38 137,78 138,78 139,48 140,33 141,48 142,45 143,120" />
 	<!-- Humidity Min -->
-	<polygon style="fill:lime;stroke:green;clip-path:url(#GraphRegion)" points="55,120 54,69 55,69 56,69 57,69 58,121 59,89 60,95 61,120" />
+	<polygon style="fill:lime;stroke:green;clip-path:url(#GraphRegion)" points="55,120 54,72 55,89 56,92 57,71 58,59 59,63 60,94 61,91 62,99 63,75 64,73 65,86 66,68 67,99 68,47 69,31 70,59 71,75 72,77 73,109 74,109 75,78 76,87 77,82 78,92 79,73 80,96 81,60 82,86 83,90 84,86 85,80 86,77 87,85 88,93 89,82 90,84 91,82 92,75 93,73 94,58 95,73 96,95 97,98 98,96 99,95 100,103 101,54 102,75 103,109 104,51 105,51 106,51 107,51 108,51 109,51 110,51 111,51 112,51 113,51 114,51 115,51 116,51 117,51 118,51 119,51 120,51 121,51 122,51 123,51 124,51 125,51 126,51 127,51 128,51 129,51 130,51 131,51 132,51 133,51 134,84 135,83 136,78 137,78 138,78 139,78 140,121 141,94 142,100 143,120" />
 	<line x1="52" y1="14" x2="472" y2="14"/>
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="14">67.1</text>
-	<text style="fill:green;dominant-baseline:middle" x="472" y="14">88.0</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="14">82.4</text>
+	<text style="fill:green;dominant-baseline:middle" x="472" y="14">100.0</text>
 	<line x1="52" y1="121" x2="472" y2="121"/>
 	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="121">47.6</text>
 	<text style="fill:green;dominant-baseline:middle" x="472" y="121">34.0</text>
 	<line x1="54" y1="14" x2="54" y2="121"/>
 	<line x1="470" y1="14" x2="470" y2="121"/>
 	<line style="stroke-dasharray:1" x1="52" y1="40" x2="472" y2="40" />
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="40">62.2</text>
-	<text style="fill:green;dominant-baseline:middle" x="472" y="40">74.5</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="40">73.7</text>
+	<text style="fill:green;dominant-baseline:middle" x="472" y="40">83.5</text>
 	<line style="stroke-dasharray:1" x1="52" y1="66" x2="472" y2="66" />
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="66">57.3</text>
-	<text style="fill:green;dominant-baseline:middle" x="472" y="66">61.0</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="66">65.0</text>
+	<text style="fill:green;dominant-baseline:middle" x="472" y="66">67.0</text>
 	<line style="stroke-dasharray:1" x1="52" y1="92" x2="472" y2="92" />
-	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="92">52.5</text>
-	<text style="fill:green;dominant-baseline:middle" x="472" y="92">47.5</text>
-	<text style="text-anchor:middle" x="57" y="133">Jun</text>
+	<text style="fill:blue;text-anchor:end;dominant-baseline:middle" x="52" y="92">56.3</text>
+	<text style="fill:green;dominant-baseline:middle" x="472" y="92">50.5</text>
+	<line style="stroke-dasharray:1" x1="61" y1="14" x2="61" y2="123" />
+	<text style="text-anchor:middle" x="78" y="133">Aug</text>
+	<line style="stroke-dasharray:1" x1="92" y1="14" x2="92" y2="123" />
+	<text style="text-anchor:middle" x="109" y="133">Jul</text>
+	<line style="stroke-dasharray:1" x1="123" y1="14" x2="123" y2="123" />
+	<text style="text-anchor:middle" x="139" y="133">Jun</text>
 	<polygon style="fill:red;stroke:red;fill-opacity:1;" points="51,121 57,118 57,124" />
 	<!-- Temperature MinMax -->
-	<polygon style="fill:blue;stroke:blue;clip-path:url(#GraphRegion)" points="55,40 56,40 57,40 58,14 59,40 60,14 60,82 59,100 58,121 57,103 56,40 55,40 " />
+	<polygon style="fill:blue;stroke:blue;clip-path:url(#GraphRegion)" points="55,23 56,14 57,41 58,60 59,55 60,23 61,29 62,31 63,52 64,70 65,67 66,53 67,37 68,71 69,83 70,62 71,55 72,50 73,33 74,25 75,42 76,51 77,36 78,37 79,61 80,45 81,61 82,29 83,22 84,27 85,40 86,54 87,40 88,20 89,40 90,28 91,28 92,44 93,38 94,51 95,55 96,40 97,46 98,51 99,44 100,52 101,72 102,45 103,28 104,74 105,74 106,74 107,74 108,74 109,74 110,74 111,74 112,74 113,74 114,74 115,74 116,74 117,74 118,74 119,74 120,74 121,74 122,74 123,74 124,74 125,74 126,74 127,74 128,74 129,74 130,74 131,74 132,74 133,74 134,61 135,69 136,75 137,75 138,75 139,75 140,61 141,75 142,61 142,99 141,109 140,121 139,111 138,75 137,75 136,97 135,107 134,105 133,74 132,74 131,74 130,74 129,74 128,74 127,74 126,74 125,74 124,74 123,74 122,74 121,74 120,74 119,74 118,74 117,74 116,74 115,74 114,74 113,74 112,74 111,74 110,74 109,74 108,74 107,74 106,74 105,74 104,74 103,77 102,88 101,88 100,93 99,101 98,87 97,102 96,102 95,92 94,82 93,73 92,86 91,89 90,83 89,87 88,92 87,87 86,89 85,97 84,94 83,91 82,85 81,84 80,90 79,83 78,84 77,91 76,86 75,91 74,76 73,94 72,82 71,84 70,93 69,93 68,94 67,88 66,102 65,100 64,112 63,97 62,99 61,96 60,89 59,80 58,86 57,96 56,90 55,90 " />
 </svg>
