@@ -1,7 +1,12 @@
 #!/bin/sh
 # POSTINST script for weatherflowtempestsvglogger
 
-echo "\033[36m HI I'M A POSTINST SCRIPT `date +"%s"` \033[39m"
+echo "\033[36m HI I'M A POSTINST SCRIPT `date --rfc-3339='seconds'` \033[39m"
+adduser --system --ingroup www-data weatherflowtempestsvglogger
+mkdir --mode 0775 --parents /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
+chown --recursive weatherflowtempestsvglogger:www-data /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
+chmod --recursive 0664 /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
+chmod  0775 /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
 systemctl daemon-reload
 systemctl enable weatherflowtempestsvglogger.service
 systemctl start weatherflowtempestsvglogger.service

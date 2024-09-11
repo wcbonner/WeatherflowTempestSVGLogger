@@ -10,9 +10,8 @@ StartLimitIntervalSec=33
 Type=simple
 Restart=always
 RestartSec=30
-ExecStartPre=/bin/mkdir --parents /var/log/weatherflowtempestsvglogger
-ExecStartPre=/bin/mkdir --parents /var/www/html/weatherflowtempestsvglogger
-ExecStartPre=/bin/mkdir --parents /var/cache/weatherflowtempestsvglogger
+User=weatherflowtempestsvglogger
+Group=www-data
 ExecStart=/usr/local/bin/WeatherflowTempestSVGLogger \
     --verbose 0 \
     --log /var/log/weatherflowtempestsvglogger \
