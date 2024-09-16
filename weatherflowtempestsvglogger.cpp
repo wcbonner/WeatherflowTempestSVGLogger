@@ -895,7 +895,7 @@ void WriteTemperatureSVG(std::vector<TempestObservation>& TheValues, const std::
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
-void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesystem::path& SVGFileName, const std::string& Title = "", const GraphType graph = GraphType::daily, const bool MinMax = false)
+void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesystem::path& SVGFileName, const std::string& Title = "", const GraphType graph = GraphType::daily, const bool MinMax = false, const double MinPressureDifferential = 4.0)
 {
 	// this overloaded function should allow both wind and pressue on same graph, with wind as left (primary) and pressure as right (secondary) scales.
 	// By declaring these items here, I'm then basing all my other dimensions on these
@@ -958,10 +958,10 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 						PressureMax = std::max(PressureMax, TheValues[index].GetOutsidePressure());
 					}
 				}
-				int GraphTop = FontSize + TickSize;
-				int GraphBottom = SVGHeight - GraphTop;
+				const int GraphTop = FontSize + TickSize;
+				const int GraphBottom = SVGHeight - GraphTop;
 				int GraphRight = SVGWidth - GraphTop;
-				bool DrawPressure = PressureMax - PressureMin > 4.0;
+				const bool DrawPressure = PressureMax - PressureMin > MinPressureDifferential;
 				if (DrawPressure)
 				{
 					// Space for legend to be drawn on the right of the graph plus space for one more legend line on the left.
@@ -974,11 +974,11 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 					GraphWidth -= FontSize;
 				}
 				int GraphLeft = GraphRight - GraphWidth;
-				int GraphVerticalDivision = (GraphBottom - GraphTop) / 4;
-				double WindVerticalDivision = (WindMax - WindMin) / 4;
-				double WindVerticalFactor = (GraphBottom - GraphTop) / (WindMax - WindMin);
-				double PressureVerticalDivision = (PressureMax - PressureMin) / 4;
-				double PressureVerticalFactor = (GraphBottom - GraphTop) / (PressureMax - PressureMin);
+				const int GraphVerticalDivision = (GraphBottom - GraphTop) / 4;
+				const double WindVerticalDivision = (WindMax - WindMin) / 4;
+				const double WindVerticalFactor = (GraphBottom - GraphTop) / (WindMax - WindMin);
+				const double PressureVerticalDivision = (PressureMax - PressureMin) / 4;
+				const double PressureVerticalFactor = (GraphBottom - GraphTop) / (PressureMax - PressureMin);
 
 				SVGFile << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>" << std::endl;
 				SVGFile << "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"" << SVGWidth << "\" height=\"" << SVGHeight << "\">" << std::endl;
@@ -1152,7 +1152,7 @@ void WriteAllSVG()
 	std::vector<TempestObservation> TheValues;
 	ReadMRTGData(TheValues, GraphType::daily);
 	WriteTemperatureSVG(TheValues, SVGDirectory / "weatherflow-temperature-day.svg", ssTitle, GraphType::daily, SVGFahrenheit, SVGBattery & 0x01, SVGMinMax & 0x01);
-	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-day.svg", ssTitle, GraphType::daily, true);
+	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-day.svg", ssTitle, GraphType::daily, true, 1.0);
 	ReadMRTGData(TheValues, GraphType::weekly);
 	WriteTemperatureSVG(TheValues, SVGDirectory / "weatherflow-temperature-week.svg", ssTitle, GraphType::weekly, SVGFahrenheit, SVGBattery & 0x02, SVGMinMax & 0x02);
 	WriteWindSVG(TheValues, SVGDirectory / "weatherflow-wind-week.svg", ssTitle, GraphType::weekly, true);
