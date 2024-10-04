@@ -29,6 +29,7 @@
 static const std::string ProgramVersionString("WeatherFlowTempestLogger Version " WeatherFlowTempestLogger_VERSION " Built on: " __DATE__ " at " __TIME__);
 /////////////////////////////////////////////////////////////////////////////
 int ConsoleVerbosity(1);
+int AltitudeAdjustment(0);
 std::filesystem::path LogDirectory;	// If this remains empty, log Files are not created.
 std::filesystem::path CacheDirectory;	// If this remains empty, cache Files are not used. Cache Files should greatly speed up startup of the program if logged data runs multiple years over many devices.
 std::filesystem::path SVGDirectory;	// If this remains empty, SVG Files are not created. If it's specified, _day, _week, _month, and _year.svg files are created for each bluetooth address seen.
@@ -926,7 +927,7 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 				tempOString << "Wind Gust (" << std::fixed << std::setprecision(1) << TheValues[0].GetWindSpeedMax() << " kn)";
 				const std::string YLegendWindGust(tempOString.str());
 				tempOString.str("");
-				tempOString << "Pressure (" << std::fixed << std::setprecision(1) << TheValues[0].GetOutsidePressure() << " hPa)";
+				tempOString << "Pressure (" << std::fixed << std::setprecision(1) << TheValues[0].GetOutsidePressure() + AltitudeAdjustment << " hPa)";
 				const std::string YLegendPressure(tempOString.str());
 				double WindMin = DBL_MAX;
 				double WindMax = -DBL_MAX;
@@ -1012,7 +1013,7 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 				SVGFile << "\t<line x1=\"" << GraphLeft - TickSize << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << GraphTop << "\"/>" << std::endl;
 				SVGFile << "\t<text style=\"fill:blue;text-anchor:end;dominant-baseline:middle\" x=\"" << GraphLeft - TickSize << "\" y=\"" << GraphTop << "\">" << std::fixed << std::setprecision(1) << WindMax << "</text>" << std::endl;
 				if (DrawPressure)
-					SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphTop << "\">" << std::fixed << std::setprecision(1) << PressureMax << "</text>" << std::endl;
+					SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphTop << "\">" << std::fixed << std::setprecision(1) << PressureMax + AltitudeAdjustment << "</text>" << std::endl;
 
 				// Vertical Division Dashed Lines
 				for (auto index = 1; index < 4; index++)
@@ -1020,14 +1021,14 @@ void WriteWindSVG(std::vector<TempestObservation>& TheValues, const std::filesys
 					SVGFile << "\t<line style=\"stroke-dasharray:1\" x1=\"" << GraphLeft - TickSize << "\" y1=\"" << GraphTop + (GraphVerticalDivision * index) << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << GraphTop + (GraphVerticalDivision * index) << "\" />" << std::endl;
 					SVGFile << "\t<text style=\"fill:blue;text-anchor:end;dominant-baseline:middle\" x=\"" << GraphLeft - TickSize << "\" y=\"" << GraphTop + (GraphVerticalDivision * index) << "\">" << std::fixed << std::setprecision(1) << WindMax - (WindVerticalDivision * index) << "</text>" << std::endl;
 					if (DrawPressure)
-						SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphTop + (GraphVerticalDivision * index) << "\">" << std::fixed << std::setprecision(1) << PressureMax - (PressureVerticalDivision * index) << "</text>" << std::endl;
+						SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphTop + (GraphVerticalDivision * index) << "\">" << std::fixed << std::setprecision(1) << PressureMax - (PressureVerticalDivision * index) + AltitudeAdjustment << "</text>" << std::endl;
 				}
 
 				// Bottom Line
 				SVGFile << "\t<line x1=\"" << GraphLeft - TickSize << "\" y1=\"" << GraphBottom << "\" x2=\"" << GraphRight + TickSize << "\" y2=\"" << GraphBottom << "\"/>" << std::endl;
 				SVGFile << "\t<text style=\"fill:blue;text-anchor:end;dominant-baseline:middle\" x=\"" << GraphLeft - TickSize << "\" y=\"" << GraphBottom << "\">" << std::fixed << std::setprecision(1) << WindMin << "</text>" << std::endl;
 				if (DrawPressure)
-					SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphBottom << "\">" << std::fixed << std::setprecision(1) << PressureMin << "</text>" << std::endl;
+					SVGFile << "\t<text style=\"fill:green;dominant-baseline:middle\" x=\"" << GraphRight + TickSize << "\" y=\"" << GraphBottom << "\">" << std::fixed << std::setprecision(1) << PressureMin + AltitudeAdjustment << "</text>" << std::endl;
 
 				// Left Line
 				SVGFile << "\t<line x1=\"" << GraphLeft << "\" y1=\"" << GraphTop << "\" x2=\"" << GraphLeft << "\" y2=\"" << GraphBottom << "\"/>" << std::endl;
@@ -1193,11 +1194,12 @@ static void usage(int argc, char** argv)
 	std::cout << "    -f | --cache name    cache file directory [" << CacheDirectory << "]" << std::endl;
 	std::cout << "    -s | --svg name      SVG output directory [" << SVGDirectory << "]" << std::endl;
 	std::cout << "    -c | --celsius       SVG output using degrees C [" << std::boolalpha << !SVGFahrenheit << "]" << std::endl;
+	std::cout << "    -p | --pressure      hPa offset for altitude difference from sea level [" << AltitudeAdjustment << "]" << std::endl;
 	std::cout << "    -b | --battery graph Draw the battery status on SVG graphs. 1:daily, 2:weekly, 4:monthly, 8:yearly" << std::endl;
 	std::cout << "    -x | --minmax graph  Draw the minimum and maximum temperature and humidity status on SVG graphs. 1:daily, 2:weekly, 4:monthly, 8:yearly" << std::endl;
 	std::cout << std::endl;
 }
-static const char short_options[] = "hl:t:v:f:s:cb:x";
+static const char short_options[] = "hl:t:v:f:s:cp:b:x";
 static const struct option long_options[] = {
 		{ "help",   no_argument,       NULL, 'h' },
 		{ "log",    required_argument, NULL, 'l' },
@@ -1206,6 +1208,7 @@ static const struct option long_options[] = {
 		{ "cache",	required_argument, NULL, 'f' },
 		{ "svg",	required_argument, NULL, 's' },
 		{ "celsius",no_argument,       NULL, 'c' },
+		{ "pressure",required_argument,NULL, 'p' },
 		{ "battery",required_argument, NULL, 'b' },
 		{ "minmax",	required_argument, NULL, 'x' },
 		{ 0, 0, 0, 0 }
@@ -1266,6 +1269,11 @@ int main(int argc, char** argv)
 			break;
 		case 'c':	// --celsius
 			SVGFahrenheit = false;
+			break;
+		case 'p':	// --pressure
+			try { AltitudeAdjustment = std::stoi(optarg); }
+			catch (const std::invalid_argument& ia) { std::cerr << "Invalid argument: " << ia.what() << std::endl; exit(EXIT_FAILURE); }
+			catch (const std::out_of_range& oor) { std::cerr << "Out of Range error: " << oor.what() << std::endl; exit(EXIT_FAILURE); }
 			break;
 		case 'b':	// --battery
 			try { SVGBattery = std::stoi(optarg); }

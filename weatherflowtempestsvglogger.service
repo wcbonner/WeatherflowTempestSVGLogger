@@ -17,6 +17,7 @@ ExecStart=/usr/local/bin/WeatherflowTempestSVGLogger \
     --log /var/log/weatherflowtempestsvglogger \
     --time 300 \
     --svg /var/www/html/weatherflowtempestsvglogger --minmax 8 \
+    --pressure 0 \
     --cache /var/cache/weatherflowtempestsvglogger
 KillSignal=SIGINT
 
