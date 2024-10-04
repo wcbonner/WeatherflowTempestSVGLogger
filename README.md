@@ -12,6 +12,23 @@ Create Local SVG graphs from UDP broadcasts of the Weatherflow Tempest Weather S
 ![Image](exampleoutput/weatherflow-wind-month.svg)
 ![Image](exampleoutput/weatherflow-wind-year.svg)
 
+## Command Line Options
+```
+Usage: /usr/local/bin/WeatherflowTempestSVGLogger [options]
+  WeatherFlowTempestLogger Version 1.20241004.0 Built on: Oct  4 2024 at 10:24:59
+  Options:
+    -h | --help          Print this message
+    -l | --log name      Logging Directory [""]
+    -t | --time seconds  Time between log file writes [60]
+    -v | --verbose level stdout verbosity level [1]
+    -f | --cache name    cache file directory [""]
+    -s | --svg name      SVG output directory [""]
+    -c | --celsius       SVG output using degrees C [false]
+    -p | --pressure      hPa offset for altitude difference from sea level [0]
+    -b | --battery graph Draw the battery status on SVG graphs. 1:daily, 2:weekly, 4:monthly, 8:yearly
+    -x | --minmax graph  Draw the minimum and maximum temperature and humidity status on SVG graphs. 1:daily, 2:weekly, 4:monthly, 8:yearly
+```
+
 ## Weatherflow Data
 
 ### UDP Basics

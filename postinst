@@ -3,9 +3,9 @@
 
 echo "\033[36m HI I'M A POSTINST SCRIPT `date --rfc-3339='seconds'` \033[39m"
 adduser --system --ingroup www-data weatherflowtempestsvglogger
-mkdir --verbose --mode 0775 --parents /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
+mkdir --verbose --mode 0755 --parents /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
 chown --changes --recursive weatherflowtempestsvglogger:www-data /var/log/weatherflowtempestsvglogger /var/cache/weatherflowtempestsvglogger /var/www/html/weatherflowtempestsvglogger
-chmod --changes --recursive 0664 /var/log/weatherflowtempestsvglogger/* /var/cache/weatherflowtempestsvglogger/* /var/www/html/weatherflowtempestsvglogger/*
+chmod --changes --recursive 0644 /var/log/weatherflowtempestsvglogger/* /var/cache/weatherflowtempestsvglogger/* /var/www/html/weatherflowtempestsvglogger/*
 systemctl daemon-reload
 systemctl enable weatherflowtempestsvglogger.service
 systemctl start weatherflowtempestsvglogger.service
