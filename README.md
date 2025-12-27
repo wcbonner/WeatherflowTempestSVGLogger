@@ -29,6 +29,13 @@ Usage: /usr/local/bin/WeatherflowTempestSVGLogger [options]
     -x | --minmax graph  Draw the minimum and maximum temperature and humidity status on SVG graphs. 1:daily, 2:weekly, 4:monthly, 8:yearly
 ```
 
+## Build on Raspberry Pi OS
+```
+sudo apt install libjsoncpp-dev
+git clone https://github.com/wcbonner/WeatherflowTempestSVGLogger.git
+pushd  ~/WeatherflowTempestSVGLogger/ && git pull && popd && cmake -S ~/WeatherflowTempestSVGLogger -B ~/WeatherflowTempestSVGLogger/build && cmake --build ~/WeatherflowTempestSVGLogger/build && pushd ~/WeatherflowTempestSVGLogger/build && ctest -V . && cpack . && popd
+```
+
 ## Weatherflow Data
 
 ### UDP Basics
